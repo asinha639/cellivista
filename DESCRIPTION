@@ -1,0 +1,28 @@
+Package: Cellivista
+Type: Package
+Title: Cellivista scRNA-seq Shiny Application
+Version: 0.1.0
+Authors@R: 
+    person(given = "Arnoneel", family = "Sinha", role = c("aut", "cre"), email = "arsinha@augusta.edu")
+Description: A Shiny application for end-to-end single-cell RNA-seq analysis using Seurat,
+    including quality control, post-QC filtering, doublet removal, sample integration,
+    downstream clustering and UMAP visualization, cluster-wise DGEA, annotation,
+    and gene-level FeaturePlot generation.
+License: file LICENSE
+Encoding: UTF-8
+LazyData: true
+Imports:
+    shiny,
+    Seurat,
+    ggplot2,
+    dplyr,
+    shinyBS,
+    patchwork,
+    purrr,
+    readr,
+    future,
+    shinyWidgets,
+    tibble,
+    tidyr
+Roxygen: list(markdown = TRUE)
+RoxygenNote: 7.3.2
