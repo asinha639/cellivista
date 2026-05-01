@@ -1,6 +1,6 @@
 Package: Cellivista
 Type: Package
-Title: Cellivista scRNA-seq Shiny Application
+Title: cellivista: An Interactive Seurat Based Shiny App for Single Cell RNA seq Analysis
 Version: 0.1.0
 Authors@R: 
     person(given = "Arnoneel", family = "Sinha", role = c("aut", "cre"), email = "arsinha@augusta.edu")
@@ -23,6 +23,7 @@ Imports:
     future,
     shinyWidgets,
     tibble,
-    tidyr
+    tidyr,
+    Matrix
 Roxygen: list(markdown = TRUE)
 RoxygenNote: 7.3.2

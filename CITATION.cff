@@ -9,8 +9,9 @@ repository-code: "https://github.com/asinha639/cellivista"
 url: "https://au-cbgm-shiny.augusta.edu/Cellivista/"
 abstract: >-
   Cellivista is a Shiny application for end-to-end single-cell RNA-seq analysis,
-  including quality control, filtering, doublet removal, integration,
-  clustering, differential expression, cluster annotation, and gene-level visualization.
+  including conversion of matrix/barcode/gene files to Seurat RDS objects,
+  quality control, filtering, doublet removal, integration, clustering,
+  differential expression, cluster annotation, and gene-level visualization.
 keywords:
   - single-cell RNA-seq
   - scRNA-seq

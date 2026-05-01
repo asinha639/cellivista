@@ -22,31 +22,33 @@ read_h5_to_seurat <- function(filepath,
                               min_cells = 3,
                               add_metadata = NULL,
                               sample_label_map = NULL) {
-
-  # Load required packages
   if (!requireNamespace("Seurat", quietly = TRUE)) {
     stop("Seurat package is required but not installed.")
   }
-  # if (!requireNamespace("SeuratDisk", quietly = TRUE)) {
-  #   stop("SeuratDisk package is required but not installed.")
-  # }
   if (!requireNamespace("dplyr", quietly = TRUE)) {
     stop("dplyr package is required but not installed.")
   }
-
-  library(dplyr)
-
-  # Read the HDF5 file
+  
+  if (missing(filepath) || is.null(filepath) || !nzchar(filepath) || !file.exists(filepath)) {
+    stop("Input filepath does not exist.")
+  }
+  
+  if (!is.null(sample_label_map)) {
+    if (!is.character(sample_label_map) || is.null(names(sample_label_map))) {
+      stop("sample_label_map must be a named character vector.")
+    }
+  }
+  
   message("Reading HDF5 file: ", filepath)
   counts <- Seurat::Read10X_h5(filepath)
-
-  # Create Seurat object
-  seurat_obj <- Seurat::CreateSeuratObject(counts = counts,
-                                           project = project_name,
-                                           min.cells = min_cells,
-                                           min.features = min_features)
-
-  # Optional: Add metadata
+  
+  seurat_obj <- Seurat::CreateSeuratObject(
+    counts = counts,
+    project = project_name,
+    min.cells = min_cells,
+    min.features = min_features
+  )
+  
   if (!is.null(add_metadata)) {
     if (!all(rownames(add_metadata) %in% colnames(seurat_obj))) {
       warning("Some rownames in metadata do not match Seurat cell names. Skipping metadata merge.")
@@ -54,23 +56,17 @@ read_h5_to_seurat <- function(filepath,
       seurat_obj <- Seurat::AddMetaData(seurat_obj, metadata = add_metadata)
     }
   }
-
+  
+  # Create SampleLabel first from barcode suffix
+  seurat_obj$SampleLabel <- sub(".*-(\\d+)$", "Sample\\1", colnames(seurat_obj))
+  
+  # Then optionally remap labels
   if (!is.null(sample_label_map)) {
-    if (!is.character(sample_label_map) || is.null(names(sample_label_map))) {
-      stop("sample_label_map must be a named character vector.")
-    }
-    seurat_obj@meta.data <- seurat_obj@meta.data %>%
-      mutate(SampleLabel = recode(SampleLabel, !!!sample_label_map))
+    seurat_obj@meta.data$SampleLabel <- dplyr::recode(
+      seurat_obj@meta.data$SampleLabel,
+      !!!sample_label_map
+    )
   }
-
-  # Parse SampleLabel from cell names (e.g., ending in -1, -2, etc.)
-  seurat_obj$SampleLabel <- sub(".*-(\\d+)$", "Sample\\1", rownames(seurat_obj@meta.data))
-
-  # Optionally relabel SampleLabel using user-supplied named vector
-  if (!is.null(sample_label_map)) {
-    seurat_obj@meta.data <- seurat_obj@meta.data %>%
-      mutate(SampleLabel = recode(SampleLabel, !!!sample_label_map))
-  }
-
+  
   return(seurat_obj)
 }

@@ -17,19 +17,20 @@
 
 ## Overview
 
-Cellivista provides a guided, browser-based workflow for single-cell RNA-seq analysis, from raw 10x Genomics HDF5 input through quality control, doublet removal, multi-sample integration, clustering, differential expression, cluster annotation, and FeaturePlot-based gene visualization.
+Cellivista provides a guided, browser-based workflow for single-cell RNA-seq analysis, from input preparation and Seurat object creation through quality control, doublet removal, multi-sample integration, clustering, differential expression, cluster annotation, and FeaturePlot-based gene visualization. The app supports 10x Genomics HDF5 (`.h5`) files, existing Seurat `.rds` objects, and matrix/barcode/gene input files that can be converted to Seurat `.rds` format within the app.
 
 ### Main workflow modules
 
-1. Upload 10x Genomics `.h5` data and initialize a Seurat object
-2. Compute quality-control metrics and generate QC plots
-3. Apply post-QC filtering and export filtered objects
-4. Detect and remove doublets with DoubletFinder
-5. Integrate multiple samples using SCTransform-based Seurat integration
-6. Perform downstream dimensionality reduction, clustering, and UMAP visualization
-7. Identify cluster-wise marker genes
-8. Annotate clusters with user-provided cell type labels
-9. Visualize gene expression with FeaturePlots
+1. Convert matrix/barcode/gene files to a Seurat `.rds` object when needed
+2. Upload 10x Genomics `.h5` data or an existing Seurat `.rds` object
+3. Compute quality-control metrics and generate QC plots
+4. Apply post-QC filtering and export filtered objects
+5. Detect and remove doublets with DoubletFinder
+6. Integrate multiple samples using SCTransform-based Seurat integration
+7. Perform downstream dimensionality reduction, clustering, and UMAP visualization
+8. Identify cluster-wise marker genes
+9. Annotate clusters with user-provided cell type labels
+10. Visualize gene expression with FeaturePlots
 
 ## Live deployment
 
@@ -39,25 +40,32 @@ Production instance:
 
 ## Repository structure
 
+## Repository structure
+
 ```text
 Cellivista/
 ├── app.R
 ├── R/
-│   ├── read_h5_to_seurat.R
-│   ├── run_qc_metrics.R
-│   ├── post_qc_filtering_and_plots.R
-│   ├── remove_doublets.R
-│   ├── integrate_seurat_samples.R
-│   ├── run_downstream_analysis.R
-│   ├── run_pairwise_dgea.R
-│   ├── run_clusterwise_dgea.R
 │   ├── annotate_clusters.R
-│   └── plot_genes_feature.R
+│   ├── convert_matrix_to_rds.R
+│   ├── integrate_seurat_samples.R
+│   ├── plot_genes_feature.R
+│   ├── post_qc_filtering_and_plots.R
+│   ├── read_h5_to_seurat.R
+│   ├── remove_doublets.R
+│   ├── run_clusterwise_dgea.R
+│   ├── run_downstream_analysis.R
+│   └── run_qc_metrics.R
 ├── www/
 │   └── logo.png
 ├── inst/
 │   └── extdata/
-│       └── sample_cluster_annotations.csv│       
+│       ├── sample_cluster_annotations.csv
+│       └── GSE132044/
+│           ├── Raw Data/                     # original GEO matrix files
+│           ├── celltype_annotations.csv     # annotation file
+│           ├── GSE132044_pbmc_hg38.rds      # processed Seurat object
+│           └── rds_convert.R                # rds conversion script
 ├── docs/
 │   └── Cellivista_vignette.pdf
 ```
@@ -76,6 +84,7 @@ Cellivista/
 - readr
 - future
 - DoubletFinder
+- Matrix
 - shinyWidgets
 - tibble
 - tidyr
@@ -102,8 +111,13 @@ shiny::runApp(".")
 
 ## Input data
 
-- Primary input: 10x Genomics HDF5 (`.h5`) gene expression matrices
-- Optional inputs: previously saved Seurat `.rds` objects and CSV-based cluster annotation maps
+- Primary inputs:
+  - 10x Genomics HDF5 (`.h5`) gene expression matrices
+  - Previously saved Seurat `.rds` objects
+- Additional supported inputs:
+  - Matrix Market count matrices (`.mtx` or `.mtx.gz`) with corresponding barcode/cell and gene/features files, which can be converted to a Seurat `.rds` object within the app
+- Optional inputs:
+  - CSV-based cluster annotation maps for cell type labeling
 
 A sample annotation template is included at:
 
@@ -124,13 +138,15 @@ Depending on user selections, Cellivista can generate:
 - Annotation plots
 - FeaturePlots for selected genes
 
-## Suggested citation text
+## Citation
 
-If you cite the software in a manuscript, a concise software citation can follow this format:
+If you use Cellivista in your work, please cite the software using the repository information below:
 
-> Cellivista: a Shiny-based interface for Seurat-driven single-cell RNA-seq analysis, including quality control, doublet removal, sample integration, clustering, differential expression, annotation, and gene-level visualization.
+> cellivista: An Interactive Seurat Based Shiny App for Single Cell RNA seq Analysis
 
-A machine-readable citation file is included as `CITATION.cff` and should be updated with the final author list, version, DOI, and GitHub URL before release.
+A machine-readable citation file (`CITATION.cff`) is included in this repository.
+
+**Note:** A formal citation (with DOI and versioned release) will be provided upon publication.
 
 ## Reproducibility and publication notes
 

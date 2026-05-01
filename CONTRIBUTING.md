@@ -7,7 +7,7 @@ Thank you for your interest in contributing to Cellivista.
 - Keep the Shiny entrypoint in `app.R`
 - Place reusable analysis helpers in `R/`
 - Keep user-facing static assets in `www/`
-- Keep sample inputs and templates in `inst/extdata/`
+- Keep lightweight sample inputs, compressed example data, and templates in `inst/extdata/`
 - Avoid committing large generated output directories or `.rds` artifacts
 
 ## Pull request checklist
