@@ -1,0 +1,69 @@
+GSE132044 example dataset (PBMC hg38)
+
+This folder is set up to support the provided conversion script:
+
+inst/extdata/GSE132044/rds_convert.R
+
+Expected folder structure:
+
+GSE132044/
+├── DOWNLOAD_INSTRUCTIONS.txt
+├── celltype_annotations.csv
+├── rds_convert.R
+└── Raw Data/
+    ├── GSE132044_pbmc_hg38_count_matrix.mtx.gz
+    ├── GSE132044_pbmc_hg38_cell.tsv.gz
+    └── GSE132044_pbmc_hg38_gene.tsv.gz
+
+Download the raw PBMC hg38 files from GEO:
+
+https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE132044
+
+Specifically download only these three files:
+
+1. GSE132044_pbmc_hg38_count_matrix.mtx.gz
+2. GSE132044_pbmc_hg38_cell.tsv.gz
+3. GSE132044_pbmc_hg38_gene.tsv.gz
+
+Important:
+- These files must be placed inside the `Raw Data/` folder.
+- Keep the filenames exactly as shown above.
+- Do not rename the files.
+- Use the PBMC hg38 files only.
+- Do not use the mm10 cortex files or hg19/mm10 mixture files for this example.
+
+To convert the raw files to a Seurat RDS object:
+
+1. Open R or RStudio.
+2. Set the working directory to this folder:
+
+   inst/extdata/GSE132044/
+
+3. Run:
+
+   source("rds_convert.R")
+
+The script will:
+- look for the compressed `.gz` files in `Raw Data/`
+- decompress them if needed
+- read the matrix, cell, and gene files
+- create a Seurat object
+- add `SampleLabel` metadata
+- save the processed object as:
+
+   GSE132044_pbmc_hg38.rds
+
+Optional output:
+- The script also saves:
+
+   GSE132044_pbmc_hg38.h5Seurat
+
+Required R packages:
+- Seurat
+- SeuratDisk
+- dplyr
+- stringr
+- R.utils
+
+Note:
+The processed `.rds` file is not included in the GitHub repository if it exceeds GitHub file size limits. Users should generate it locally using the instructions above.

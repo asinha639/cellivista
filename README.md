@@ -62,10 +62,9 @@ Cellivista/
 │   └── extdata/
 │       ├── sample_cluster_annotations.csv
 │       └── GSE132044/
-│           ├── Raw Data/                     # original GEO matrix files
-│           ├── celltype_annotations.csv     # annotation file
-│           ├── GSE132044_pbmc_hg38.rds      # processed Seurat object
-│           └── rds_convert.R                # rds conversion script
+│           ├── celltype_annotations.csv     # example annotation file
+│           ├── DOWNLOAD_INSTRUCTIONS.txt    # GEO download instructions for PBMC hg38 raw files
+│           └── rds_convert.R                # RDS conversion script
 ├── docs/
 │   └── Cellivista_vignette.pdf
 ```

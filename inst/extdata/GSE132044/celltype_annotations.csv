@@ -1,0 +1,13 @@
+seurat_clusters,cell_annotation
+0,unknown/non-immune
+1,NK cells
+2,CD8 T cells
+3,activated immune cells
+4,CD14 monocytes
+5,mature B cells
+6,naive B cells
+7,inflammatory monocytes
+8,transitional B cells
+9,unknown/non-immune
+10,platelets
+11,CX3CR1 cytotoxic T/NK cells
