@@ -39,14 +39,14 @@ jobs:
             libharfbuzz-dev \
             libfribidi-dev
 
-       - name: Install R dependencies
-	 uses: r-lib/actions/setup-r-dependencies@v2
-	 with:
-	   packages: |
-	      deps::.
-	      any::testthat
-	      any::pkgload
-	      any::BiocManager
+      - name: Install R dependencies
+        uses: r-lib/actions/setup-r-dependencies@v2
+        with:
+          packages: |
+            deps::.
+            any::testthat
+            any::pkgload
+            any::BiocManager
 
       - name: Install rhdf5
         run: |
