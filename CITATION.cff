@@ -1,23 +1,38 @@
 cff-version: 1.2.0
-title: Cellivista
+title: cellivista
 message: "Please cite this software using the metadata below."
 type: software
+
 authors:
   - family-names: "Sinha"
     given-names: "Arnoneel"
+
+  - family-names: "Sinha"
+    given-names: "Kathryn"
+
+  - family-names: "McIndoe"
+    given-names: "Richard"
+
+
 repository-code: "https://github.com/asinha639/cellivista"
-url: "https://au-cbgm-shiny.augusta.edu/Cellivista/"
+url: "https://au-cbgm-shiny.augusta.edu/cellivista/"
+doi: "10.5281/zenodo.21511557"
+
 abstract: >-
-  Cellivista is a Shiny application for end-to-end single-cell RNA-seq analysis,
-  including conversion of matrix/barcode/gene files to Seurat RDS objects,
-  quality control, filtering, doublet removal, integration, clustering,
-  differential expression, cluster annotation, and gene-level visualization.
+  cellivista is an open-source R/Shiny application for end-to-end
+  single-cell RNA-seq analysis, including data import, quality control,
+  filtering, doublet detection, sample integration, clustering,
+  differential expression analysis, cell-type annotation, and
+  publication-quality visualization using established Seurat-based workflows.
+
 keywords:
   - single-cell RNA-seq
   - scRNA-seq
   - Shiny
   - Seurat
   - bioinformatics
+
 license: MIT
-version: "0.1.0"
-date-released: "2026-01-13"
+
+version: "1.0.1"
+date-released: "2026-07-23"
