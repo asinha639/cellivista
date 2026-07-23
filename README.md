@@ -18,7 +18,7 @@
 
 ## Overview
 
-cellivista provides a guided browser-based workflow for preprocessing, quality control, integration, clustering, marker identification, annotation, and visualization of single-cell RNA-seq datasets. Rather than introducing new analytical algorithms, cellivista exposes established Seurat- and DoubletFinder-based workflows through an interactive graphical interface, allowing researchers to perform reproducible analyses without writing R code.
+`cellivista` provides a guided browser-based workflow for preprocessing, quality control, integration, clustering, marker identification, annotation, and visualization of single-cell RNA-seq datasets. Rather than introducing new analytical algorithms, `cellivista` exposes established Seurat- and DoubletFinder-based workflows through an interactive graphical interface, allowing researchers to perform reproducible analyses without writing R code.
 
 The application supports:
 
@@ -53,7 +53,7 @@ shiny::runApp(".")
 ```
 ## Testing
 
-Cellivista includes an automated unit test suite built with `testthat`. The tests use small synthetic datasets to validate the application's core analysis functions, input validation, and error handling without requiring external datasets.
+`cellivista` includes an automated unit test suite built with `testthat`. The tests use small synthetic datasets to validate the application's core analysis functions, input validation, and error handling without requiring external datasets.
 
 Run the tests locally:
 
@@ -116,7 +116,7 @@ Example data and annotation templates are included in `inst/extdata/`. The repos
 
 ## Citation
 
-Please cite cellivista using the included `CITATION.cff` file or the archived software DOI:
+Please cite `cellivista` using the included `CITATION.cff` file or the archived software DOI:
 
 **https://doi.org/10.5281/zenodo.21511557**
 
@@ -126,4 +126,4 @@ MIT License.
 
 ## Acknowledgements
 
-cellivista builds upon the Seurat ecosystem for single-cell RNA-seq analysis and uses the Shiny framework to provide an accessible graphical interface for reproducible research.
+`cellivista` builds upon the Seurat ecosystem for single-cell RNA-seq analysis and uses the Shiny framework to provide an accessible graphical interface for reproducible research.
