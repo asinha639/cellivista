@@ -75,11 +75,18 @@ run_downstream_analysis <- function(seurat_obj,
   if (length(dims) == 0) {
     stop("dims must contain at least one positive integer.")
   }
+  max_pcs <- min(max(dims), ncol(seurat_obj) - 1L, nrow(seurat_obj) - 1L)
+  max_pcs <- max(1L, as.integer(max_pcs))
+  dims <- dims[dims <= max_pcs]
+  if (length(dims) == 0) {
+    stop("dims must contain at least one positive integer that is available after PCA.")
+  }
   
   # Core downstream workflow
   seurat_obj <- Seurat::ScaleData(seurat_obj, verbose = FALSE)
-  seurat_obj <- Seurat::RunPCA(seurat_obj, verbose = FALSE)
-  seurat_obj <- Seurat::RunUMAP(seurat_obj, dims = dims, verbose = FALSE)
+  seurat_obj <- Seurat::RunPCA(seurat_obj, npcs = max_pcs, verbose = FALSE)
+  umap_neighbors <- max(1L, min(15L, ncol(seurat_obj) - 1L))
+  seurat_obj <- Seurat::RunUMAP(seurat_obj, dims = dims, n.neighbors = umap_neighbors, verbose = FALSE)
   seurat_obj <- Seurat::FindNeighbors(seurat_obj, dims = dims, verbose = FALSE)
   seurat_obj <- Seurat::FindClusters(seurat_obj, resolution = resolution, verbose = FALSE)
   

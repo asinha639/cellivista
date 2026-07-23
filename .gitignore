@@ -1,0 +1,23 @@
+# R
+.Rhistory
+.RData
+.Ruserdata
+
+# RStudio
+.Rproj.user/
+
+# renv cache (keep renv.lock)
+renv/library/
+renv/staging/
+
+# VS Code
+.vscode/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Codex / AI agent files
+.agents/
+.codex/
+

@@ -14,6 +14,7 @@ LazyData: true
 Imports:
     shiny,
     Seurat,
+    SeuratObject,
     ggplot2,
     dplyr,
     shinyBS,
@@ -25,5 +26,8 @@ Imports:
     tibble,
     tidyr,
     Matrix
+Suggests:
+    testthat (>= 3.0.0),
+    rhdf5
 Roxygen: list(markdown = TRUE)
 RoxygenNote: 7.3.2

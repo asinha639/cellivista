@@ -18,6 +18,11 @@
 integrate_seurat_samples <- function(seurat_obj,
                                      output_path = "RDS_Files/integrated_seurat.obj.rds",
                                      nfeatures = 3000,
+                                     dims = NULL,
+                                     k.anchor = NULL,
+                                     k.filter = NULL,
+                                     k.score = NULL,
+                                     k.weight = NULL,
                                      future_max_size = 2 * 1024^3,
                                      save_rds = TRUE,
                                      output_dir = NULL,
@@ -54,6 +59,56 @@ integrate_seurat_samples <- function(seurat_obj,
   seurat_list <- lapply(X = seurat_list, FUN = function(x) {
     Seurat::SCTransform(x, verbose = FALSE)
   })
+
+  sample_sizes <- vapply(seurat_list, ncol, integer(1))
+  smallest_sample_size <- min(sample_sizes)
+  if (smallest_sample_size < 3L) {
+    stop("integrate_seurat_samples() requires at least 3 cells in each sample.")
+  }
+
+  max_supported_dims <- max(1L, smallest_sample_size - 1L)
+  max_supported_dims <- min(max_supported_dims, min(vapply(seurat_list, nrow, integer(1))) - 1L)
+  max_supported_dims <- max(1L, as.integer(max_supported_dims))
+  default_dims <- seq_len(min(30L, max_supported_dims))
+
+  dims <- if (is.null(dims)) {
+    default_dims
+  } else {
+    dims <- as.integer(dims)
+    dims <- dims[!is.na(dims) & dims > 0]
+    unique(dims)
+  }
+  dims <- dims[dims <= max_supported_dims]
+  if (length(dims) == 0) {
+    stop("No valid PCA dimensions remain after adjusting for the smallest sample size.")
+  }
+
+  resolve_k <- function(value, default_value, max_value) {
+    if (is.null(value)) {
+      value <- default_value
+    }
+    value <- as.integer(value)
+    value <- value[!is.na(value) & value > 0]
+    if (length(value) == 0) {
+      stop("Integration neighborhood settings must be positive integers.")
+    }
+    value <- value[[1L]]
+    max_value <- as.integer(max_value)
+    if (is.na(max_value) || max_value < 1L) {
+      stop("integrate_seurat_samples() requires at least 3 cells in each sample.")
+    }
+    min(value, max_value)
+  }
+
+  max_anchor_neighbors <- max(2L, smallest_sample_size - 1L)
+  max_filter_neighbors <- max(2L, smallest_sample_size - 1L)
+  max_score_neighbors <- max(2L, smallest_sample_size - 1L)
+  max_weight_neighbors <- max(2L, smallest_sample_size - 1L)
+
+  k.anchor <- resolve_k(k.anchor, 5L, max_anchor_neighbors)
+  k.filter <- resolve_k(k.filter, 200L, max_filter_neighbors)
+  k.score <- resolve_k(k.score, 30L, max_score_neighbors)
+  k.weight <- resolve_k(k.weight, 100L, max_weight_neighbors)
   
   # Feature selection
   features <- Seurat::SelectIntegrationFeatures(seurat_list, nfeatures = nfeatures)
@@ -64,10 +119,20 @@ integrate_seurat_samples <- function(seurat_obj,
   # Find integration anchors
   anchors <- Seurat::FindIntegrationAnchors(object.list = seurat_list,
                                             normalization.method = "SCT",
-                                            anchor.features = features)
+                                            anchor.features = features,
+                                            dims = dims,
+                                            nn.method = "rann",
+                                            k.anchor = k.anchor,
+                                            k.filter = k.filter,
+                                            k.score = k.score)
   
   # Integrate
-  integrated <- Seurat::IntegrateData(anchorset = anchors, normalization.method = "SCT")
+  integrated <- Seurat::IntegrateData(
+    anchorset = anchors,
+    normalization.method = "SCT",
+    k.weight = k.weight,
+    dims = dims
+  )
 
   # Generate optional integration plots
   if (!is.null(plot_options) && length(plot_options) > 0) {

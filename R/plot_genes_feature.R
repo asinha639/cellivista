@@ -56,7 +56,7 @@ plot_genes_feature <- function(seurat_obj,
       stop("Cell type not found in 'cell_annotation': ", cell_type)
     }
     
-    seurat_obj <- Seurat::subset(seurat_obj, subset = cell_annotation == cell_type)
+    seurat_obj <- subset(seurat_obj, subset = cell_annotation == cell_type)
     
     output_dir <- file.path(output_dir, gsub("[^A-Za-z0-9_\\-]", "_", cell_type))
     dir.create(output_dir, recursive = TRUE, showWarnings = FALSE)
