@@ -13,6 +13,7 @@
 <img alt="R" src="https://img.shields.io/badge/R-%3E%3D%204.3-276DC3">
 <img alt="Shiny" src="https://img.shields.io/badge/Shiny-Web%20Application-1f9ed8">
 <img alt="License" src="https://img.shields.io/badge/License-MIT-green">
+<a href="https://doi.org/10.5281/zenodo.21511556"><img src="https://zenodo.org/badge/DOI/10.5281/zenodo.21511556.svg" alt="DOI"></a>
 </p>
 
 ## Overview
@@ -115,7 +116,9 @@ Example data and annotation templates are included in `inst/extdata/`. The repos
 
 ## Citation
 
-Please cite cellivista using the repository citation information or the included `CITATION.cff`. A versioned DOI will be added following the first archived software release.
+Please cite cellivista using the included `CITATION.cff` file or the archived software DOI:
+
+**https://doi.org/10.5281/zenodo.21511557**
 
 ## License
 
