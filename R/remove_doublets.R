@@ -26,22 +26,6 @@ remove_doublets <- function(seurat_obj,
                             plot_options = NULL,
                             pcs = 1:15,
                             sct = FALSE) {
-  if (!requireNamespace("Seurat", quietly = TRUE)) {
-    stop("Seurat is required.")
-  }
-  if (!requireNamespace("DoubletFinder", quietly = TRUE)) {
-    stop("DoubletFinder is required.")
-  }
-  if (!requireNamespace("ggplot2", quietly = TRUE)) {
-    stop("ggplot2 is required.")
-  }
-  if (!requireNamespace("dplyr", quietly = TRUE)) {
-    stop("dplyr is required.")
-  }
-  if (!requireNamespace("purrr", quietly = TRUE)) {
-    stop("purrr is required.")
-  }
-
   if (is.null(seurat_obj) || !inherits(seurat_obj, "Seurat")) {
     stop("seurat_obj must be a Seurat object.")
   }
@@ -59,6 +43,22 @@ remove_doublets <- function(seurat_obj,
   pcs <- sort(unique(pcs))
   if (length(pcs) < 2) {
     stop("pcs must contain at least two positive integers.")
+  }
+
+  if (!requireNamespace("Seurat", quietly = TRUE)) {
+    stop("Seurat is required.")
+  }
+  if (!requireNamespace("DoubletFinder", quietly = TRUE)) {
+    stop("DoubletFinder is required.")
+  }
+  if (!requireNamespace("ggplot2", quietly = TRUE)) {
+    stop("ggplot2 is required.")
+  }
+  if (!requireNamespace("dplyr", quietly = TRUE)) {
+    stop("dplyr is required.")
+  }
+  if (!requireNamespace("purrr", quietly = TRUE)) {
+    stop("purrr is required.")
   }
 
   dir.create(output_dir, recursive = TRUE, showWarnings = FALSE)

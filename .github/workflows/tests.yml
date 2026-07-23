@@ -47,6 +47,7 @@ jobs:
             any::testthat
             any::pkgload
             any::BiocManager
+            any::hdf5r
 
       - name: Install rhdf5
         run: |
