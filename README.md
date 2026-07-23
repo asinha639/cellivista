@@ -50,6 +50,17 @@ Install DoubletFinder following its official installation instructions.
 ```r
 shiny::runApp(".")
 ```
+## Testing
+
+Cellivista includes an automated unit test suite built with `testthat`. The tests use small synthetic datasets to validate the application's core analysis functions, input validation, and error handling without requiring external datasets.
+
+Run the tests locally:
+
+```r
+testthat::test_dir("tests/testthat")
+```
+
+The test suite is also executed automatically on every push and pull request using GitHub Actions.
 
 ## Workflow
 
@@ -69,15 +80,18 @@ shiny::runApp(".")
 ## Repository structure
 
 ```text
-cellivista/
-├── app.R
+Cellivista/
+├── .github/
+├── tests/
 ├── R/
-├── docs/
-├── inst/extdata/
 ├── paper/
+├── docs/
+├── inst/
 ├── www/
+├── app.R
 ├── README.md
-└── LICENSE
+├── LICENSE
+└── CITATION.cff
 ```
 
 ## Example data
@@ -101,7 +115,7 @@ Example data and annotation templates are included in `inst/extdata/`. The repos
 
 ## Citation
 
-Please cite cellivista using the repository citation information or the included `CITATION.cff`. A versioned DOI will accompany the archived software release.
+Please cite cellivista using the repository citation information or the included `CITATION.cff`. A versioned DOI will be added following the first archived software release.
 
 ## License
 
