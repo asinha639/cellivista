@@ -1,7 +1,7 @@
 Package: Cellivista
 Type: Package
 Title: cellivista: An Interactive Seurat Based Shiny App for Single Cell RNA seq Analysis
-Version: 0.1.0
+Version: 1.0.2
 Authors@R:
     c(
       person(

@@ -81,7 +81,7 @@ The test suite is also executed automatically on every push and pull request usi
 ## Repository structure
 
 ```text
-Cellivista/
+cellivista/
 ├── .github/
 ├── tests/
 ├── R/
