@@ -16,7 +16,7 @@ authors:
 
 repository-code: "https://github.com/asinha639/cellivista"
 url: "https://au-cbgm-shiny.augusta.edu/cellivista/"
-doi: "10.5281/zenodo.21511557"
+doi: "https://doi.org/10.5281/zenodo.21708160"
 
 abstract: >-
   cellivista is an open-source R/Shiny application for end-to-end

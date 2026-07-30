@@ -13,7 +13,7 @@
 <img alt="R" src="https://img.shields.io/badge/R-%3E%3D%204.3-276DC3">
 <img alt="Shiny" src="https://img.shields.io/badge/Shiny-Web%20Application-1f9ed8">
 <img alt="License" src="https://img.shields.io/badge/License-MIT-green">
-<a href="https://doi.org/10.5281/zenodo.21511556"><img src="https://img.shields.io/badge/DOI-10.5281%2Fzenodo.21511556-blue" alt="DOI"></a>
+<a href="https://doi.org/10.5281/zenodo.21708160"><img src="https://img.shields.io/badge/DOI-10.5281%2Fzenodo.21708160-blue" alt="DOI"></a>
 </p>
 
 ## Overview
@@ -118,7 +118,7 @@ Example data and annotation templates are included in `inst/extdata/`. The repos
 
 Please cite `cellivista` using the included `CITATION.cff` file or the archived software DOI:
 
-**https://doi.org/10.5281/zenodo.21511557**
+**https://doi.org/10.5281/zenodo.21708160**
 
 ## License
 
