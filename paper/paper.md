@@ -10,20 +10,20 @@ tags:
 authors:
   - name: Arnoneel Sinha
     orcid: 0000-0003-1006-0683 
+    corresponding: true
     affiliation: 1
   - name: Kathryn Sinha
     orcid: 0009-0006-0978-1087 
     affiliation: 2
   - name: Richard A. McIndoe
     orcid: 0000-0002-3040-3631 
-    corresponding: true
     affiliation: 1
 affiliations:
   - index: 1
     name: Center for Biotechnology & Genomic Medicine, Augusta University, Augusta, GA, United States
   - index: 2
     name: Department of Biostatistics, Data Science, & Epidemiology, Augusta University, Augusta, GA, United States
-date: 23 July 2026
+date: 24 July 2026
 bibliography: paper.bib
 ---
 
