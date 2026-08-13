@@ -111,8 +111,20 @@ Example data and annotation templates are included in `inst/extdata/`. The repos
 
 ## Documentation
 
-- `docs/cellivista_vignette.pdf`
-- `paper/paper.md`
+A detailed step-by-step guide to using `cellivista` is available in the repository:
+
+- **User vignette:** [`docs/cellivista_vignette.pdf`](docs/cellivista_vignette.pdf)
+- **Software paper:** [`paper/paper.md`](paper/paper.md)
+
+## Feedback and community
+
+`cellivista` is under active development, and feedback from researchers and bioinformaticians working with single-cell RNA-seq data is welcome.
+
+- **Questions, ideas, and general feedback:** [GitHub Discussions](https://github.com/asinha639/cellivista/discussions)
+- **Bug reports:** [GitHub Issues](https://github.com/asinha639/cellivista/issues/new/choose)
+- **Feature requests:** [GitHub Issues](https://github.com/asinha639/cellivista/issues/new/choose)
+
+Feedback from researchers testing `cellivista` on real-world datasets is especially valuable and helps guide ongoing development.
 
 ## Citation
 
