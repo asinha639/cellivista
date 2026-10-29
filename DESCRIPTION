@@ -39,7 +39,9 @@ Imports:
     purrr,
     readr,
     Matrix,
-    methods
+    methods,
+    grDevices,
+    viridisLite
 Suggests:
     shiny,
     shinyBS,

@@ -41,7 +41,9 @@ helper_files <- c(
   "run_downstream_analysis.R",
   "run_clusterwise_dgea.R",
   "annotate_clusters.R",
-  "plot_genes_feature.R"
+  "plot_genes_feature.R",
+  "viz_helpers.R",
+  "plot_umap_palette.R"
 )
 
 missing_helpers <- helper_files[!file.exists(file.path(helper_dir, helper_files))]
@@ -198,6 +200,30 @@ qm_icon <- function(id) {
 }
 
 help_label <- function(text, id) tagList(text, qm_icon(id))
+
+# Visualization Options tab: help text and export settings.
+help_texts <- c(
+  help_texts,
+  vizUmapPaletteHelp = "Default keeps Seurat colors. Okabe-Ito is colorblind-safe but has 8 colors; with more clusters viridis is used.",
+  vizExportHelp = "Filename, size, and format used when downloading this plot."
+)
+
+make_viz_export_panel <- function(id_prefix, default_filename, default_width = 8, default_height = 7) {
+  tagList(
+    textInput(paste0(id_prefix, "_filename"), help_label("Filename", "vizExportHelp"), value = default_filename),
+    radioButtons(paste0(id_prefix, "_format"), "Format", choices = c("png", "pdf", "svg"), selected = "png", inline = TRUE),
+    fluidRow(
+      column(6, numericInput(paste0(id_prefix, "_width"), "Width (in)", value = default_width, min = 2, max = 30)),
+      column(6, numericInput(paste0(id_prefix, "_height"), "Height (in)", value = default_height, min = 2, max = 30))
+    )
+  )
+}
+
+viz_file_stem <- function(x, default) {
+  x <- trimws(tools::file_path_sans_ext(x %||% ""))
+  if (!nzchar(x)) x <- default
+  sanitize_file_component(x)
+}
 
 make_qc_paths <- function(base_dir) {
   list(
@@ -965,6 +991,26 @@ ui <- fluidPage(
           actionButton("runFeaturePlot", "Plot Genes", class = "btn-primary")
         ),
         mainPanel(verbatimTextOutput("featurePlotStatus"), uiOutput("featurePlotDownloadsUI"))
+      )
+    ),
+
+    tabPanel(
+      "Visualization Options",
+      sidebarLayout(
+        sidebarPanel(
+          checkboxInput("loadRDSViz", "Load Seurat object from .rds file", value = FALSE),
+          conditionalPanel(condition = "input.loadRDSViz == true", fileInput("inputRDSViz", "Select Seurat .rds file")),
+          wellPanel(
+            h4("UMAP palette"),
+            selectInput("vizUmapPalette", help_label("Color palette", "vizUmapPaletteHelp"), choices = c("Default" = "default", "Okabe-Ito" = "okabe_ito", "viridis" = "viridis"), selected = "default"),
+            make_viz_export_panel("vizUmap", "umap_palette", default_width = 8, default_height = 7),
+            actionButton("runVizUmap", "Plot UMAP", class = "btn-primary")
+          )
+        ),
+        mainPanel(
+          verbatimTextOutput("vizUmapStatus"),
+          uiOutput("vizUmapDisplay")
+        )
       )
     )
   ),
@@ -2409,6 +2455,59 @@ server <- function(input, output, session) {
       output$featurePlotStatus <- renderText("Feature plots generated successfully.")
     }, error = function(e) output$featurePlotStatus <- renderText(paste("Feature plotting failed:", e$message)))
   })
+
+  # Visualization Options tab
+  viz_rv <- reactiveValues(umap_plot = NULL, umap_preview = NULL)
+  viz_dir <- file.path(session_tmp, "visualization")
+
+  # Saves a viz plot for download; shows a readable notification instead of crashing on failure.
+  viz_download_handler <- function(plot_key, id_prefix, default_filename) {
+    downloadHandler(
+      filename = function() paste0(viz_file_stem(input[[paste0(id_prefix, "_filename")]], default_filename), ".", input[[paste0(id_prefix, "_format")]]),
+      content = function(file) {
+        plot_obj <- viz_rv[[plot_key]]
+        if (is.null(plot_obj)) stop("Generate the plot before downloading it.")
+        out_path <- tryCatch(
+          save_viz_plot(
+            plot_obj,
+            file.path(viz_dir, viz_file_stem(input[[paste0(id_prefix, "_filename")]], default_filename)),
+            format = input[[paste0(id_prefix, "_format")]],
+            width = input[[paste0(id_prefix, "_width")]],
+            height = input[[paste0(id_prefix, "_height")]]
+          ),
+          error = function(e) {
+            showNotification(paste0("Could not save ", toupper(input[[paste0(id_prefix, "_format")]]), ": ", conditionMessage(e)), type = "error", duration = NULL)
+            stop(e)
+          }
+        )
+        file.copy(out_path, file, overwrite = TRUE)
+      }
+    )
+  }
+
+  viz_preview_panel <- function(title, preview_path, download_id) {
+    if (is.null(preview_path) || !file.exists(preview_path)) return(NULL)
+    wellPanel(
+      h4(title),
+      tags$img(src = encode_img(preview_path), class = "plot-inline", style = "max-width: 100%; height: auto;"),
+      downloadButton(download_id, paste("Download", title), class = "btn-primary qc-dl")
+    )
+  }
+
+  observeEvent(input$runVizUmap, {
+    output$vizUmapStatus <- renderText("Plotting UMAP...")
+    viz_rv$umap_plot <- NULL
+    viz_rv$umap_preview <- NULL
+    tryCatch({
+      seurat_input <- get_current_or_uploaded(input$loadRDSViz, input$inputRDSViz)
+      res <- plot_umap_palette(seurat_input, palette = input$vizUmapPalette)
+      viz_rv$umap_preview <- save_viz_plot(res$plot, file.path(viz_dir, "preview_umap_palette"), format = "png", width = input$vizUmap_width, height = input$vizUmap_height)
+      viz_rv$umap_plot <- res$plot
+      output$vizUmapStatus <- renderText(paste(c("UMAP plotted.", res$notice), collapse = "\n"))
+    }, error = function(e) output$vizUmapStatus <- renderText(paste("UMAP plotting failed:", conditionMessage(e))))
+  })
+  output$vizUmapDisplay <- renderUI(viz_preview_panel("UMAP", viz_rv$umap_preview, "downloadVizUmap"))
+  output$downloadVizUmap <- viz_download_handler("umap_plot", "vizUmap", "umap_palette")
 }
 
 shinyApp(ui, server)
