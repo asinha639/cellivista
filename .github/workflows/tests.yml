@@ -106,6 +106,7 @@ jobs:
         with:
           extra-packages: |
             any::covr
+            any::xml2
             any::BiocManager
             any::hdf5r
 
