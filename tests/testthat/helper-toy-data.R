@@ -65,7 +65,9 @@ make_umap_ready_seurat <- function(counts = make_toy_counts(n_genes = 10, n_cell
   )
 
   obj <- Seurat::NormalizeData(obj, verbose = FALSE)
-  obj <- Seurat::FindVariableFeatures(obj, nfeatures = min(6, nrow(obj)), verbose = FALSE)
+  obj <- suppressWarnings(
+    Seurat::FindVariableFeatures(obj, nfeatures = min(6, nrow(obj)), verbose = FALSE)
+  )
   obj <- Seurat::ScaleData(obj, verbose = FALSE)
   obj <- Seurat::RunPCA(obj, npcs = min(4, nrow(obj) - 1, ncol(obj) - 1), verbose = FALSE)
   obj <- suppressWarnings(Seurat::RunUMAP(obj, dims = 1:2, n.neighbors = 3, verbose = FALSE))
