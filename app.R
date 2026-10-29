@@ -43,7 +43,8 @@ helper_files <- c(
   "annotate_clusters.R",
   "plot_genes_feature.R",
   "viz_helpers.R",
-  "plot_umap_palette.R"
+  "plot_umap_palette.R",
+  "plot_marker_heatmap.R"
 )
 
 missing_helpers <- helper_files[!file.exists(file.path(helper_dir, helper_files))]
@@ -205,7 +206,9 @@ help_label <- function(text, id) tagList(text, qm_icon(id))
 help_texts <- c(
   help_texts,
   vizUmapPaletteHelp = "Default keeps Seurat colors. Okabe-Ito is colorblind-safe but has 8 colors; with more clusters viridis is used.",
-  vizExportHelp = "Filename, size, and format used when downloading this plot."
+  vizExportHelp = "Filename, size, and format used when downloading this plot.",
+  vizHeatmapGenesHelp = "Top positive marker genes per cluster, taken from the Cluster-wise DGEA results of this session.",
+  vizHeatmapCellsHelp = "Maximum cells drawn per cluster. Lower values use less memory on large datasets."
 )
 
 make_viz_export_panel <- function(id_prefix, default_filename, default_width = 8, default_height = 7) {
@@ -1005,11 +1008,20 @@ ui <- fluidPage(
             selectInput("vizUmapPalette", help_label("Color palette", "vizUmapPaletteHelp"), choices = c("Default" = "default", "Okabe-Ito" = "okabe_ito", "viridis" = "viridis"), selected = "default"),
             make_viz_export_panel("vizUmap", "umap_palette", default_width = 8, default_height = 7),
             actionButton("runVizUmap", "Plot UMAP", class = "btn-primary")
+          ),
+          wellPanel(
+            h4("Marker heatmap"),
+            selectInput("vizHeatmapGenes", help_label("Top genes per cluster", "vizHeatmapGenesHelp"), choices = c(3, 5, 10, 15), selected = 5),
+            numericInput("vizHeatmapCells", help_label("Cells per cluster", "vizHeatmapCellsHelp"), value = 200, min = 10, max = 5000, step = 50),
+            make_viz_export_panel("vizHeatmap", "marker_heatmap", default_width = 10, default_height = 8),
+            actionButton("runVizHeatmap", "Plot heatmap", class = "btn-primary")
           )
         ),
         mainPanel(
           verbatimTextOutput("vizUmapStatus"),
-          uiOutput("vizUmapDisplay")
+          uiOutput("vizUmapDisplay"),
+          verbatimTextOutput("vizHeatmapStatus"),
+          uiOutput("vizHeatmapDisplay")
         )
       )
     )
@@ -2457,7 +2469,7 @@ server <- function(input, output, session) {
   })
 
   # Visualization Options tab
-  viz_rv <- reactiveValues(umap_plot = NULL, umap_preview = NULL)
+  viz_rv <- reactiveValues(umap_plot = NULL, umap_preview = NULL, heatmap_plot = NULL, heatmap_preview = NULL)
   viz_dir <- file.path(session_tmp, "visualization")
 
   # Saves a viz plot for download; shows a readable notification instead of crashing on failure.
@@ -2508,6 +2520,30 @@ server <- function(input, output, session) {
   })
   output$vizUmapDisplay <- renderUI(viz_preview_panel("UMAP", viz_rv$umap_preview, "downloadVizUmap"))
   output$downloadVizUmap <- viz_download_handler("umap_plot", "vizUmap", "umap_palette")
+
+  observeEvent(input$runVizHeatmap, {
+    output$vizHeatmapStatus <- renderText("Plotting marker heatmap...")
+    viz_rv$heatmap_plot <- NULL
+    viz_rv$heatmap_preview <- NULL
+    tryCatch({
+      marker_path <- rv$dgea_csv_all
+      if (is.null(marker_path) || !file.exists(marker_path)) {
+        stop("No marker results found. Run the Cluster-wise DGEA tab first.")
+      }
+      markers <- readr::read_csv(marker_path, show_col_types = FALSE)
+      seurat_input <- get_current_or_uploaded(input$loadRDSViz, input$inputRDSViz)
+      withProgress(message = "Plotting marker heatmap...", value = 0.3, {
+        res <- plot_marker_heatmap(seurat_input, markers, n_genes = as.integer(input$vizHeatmapGenes), cells_per_cluster = input$vizHeatmapCells)
+        viz_rv$heatmap_preview <- save_viz_plot(res$plot, file.path(viz_dir, "preview_marker_heatmap"), format = "png", width = input$vizHeatmap_width, height = input$vizHeatmap_height)
+        incProgress(1)
+      })
+      viz_rv$heatmap_plot <- res$plot
+      upload_note <- if (isTRUE(input$loadRDSViz)) "Markers come from this session's Cluster-wise DGEA run." else NULL
+      output$vizHeatmapStatus <- renderText(paste(c(paste0("Heatmap plotted (", length(res$genes), " genes, ", res$n_cells, " cells)."), upload_note, res$notice), collapse = "\n"))
+    }, error = function(e) output$vizHeatmapStatus <- renderText(paste("Heatmap plotting failed:", conditionMessage(e))))
+  })
+  output$vizHeatmapDisplay <- renderUI(viz_preview_panel("Marker heatmap", viz_rv$heatmap_preview, "downloadVizHeatmap"))
+  output$downloadVizHeatmap <- viz_download_handler("heatmap_plot", "vizHeatmap", "marker_heatmap")
 }
 
 shinyApp(ui, server)
