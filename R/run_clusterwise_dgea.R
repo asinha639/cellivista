@@ -16,6 +16,7 @@
 #'
 #' @return A data frame of marker genes for all clusters.
 #' @export
+#' @importFrom dplyr %>%
 #'
 #' @examples
 #' \dontrun{

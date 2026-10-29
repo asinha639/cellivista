@@ -31,22 +31,27 @@ License: file LICENSE
 Encoding: UTF-8
 LazyData: true
 Imports:
-    shiny,
     Seurat,
     SeuratObject,
     ggplot2,
     dplyr,
-    shinyBS,
     patchwork,
     purrr,
     readr,
-    future,
+    Matrix,
+    methods
+Suggests:
+    shiny,
+    shinyBS,
     shinyWidgets,
+    future,
     tibble,
     tidyr,
-    Matrix
-Suggests:
+    DoubletFinder,
     testthat (>= 3.0.0),
-    rhdf5
+    rhdf5,
+    hdf5r
+Remotes:
+    chris-mcginnis-ucsf/DoubletFinder
 Roxygen: list(markdown = TRUE)
 Config/roxygen2/version: 8.1.0
