@@ -6,23 +6,23 @@
 \usage{
 plot_cluster_composition(
   seurat_obj,
-  cluster_col = NULL,
+  group_by = NULL,
   sample_col = NULL,
-  bars = c("samples", "clusters")
+  bars = c("samples", "groups")
 )
 }
 \arguments{
 \item{seurat_obj}{A clustered Seurat object.}
 
-\item{cluster_col}{Metadata column holding cluster labels. Default is NULL,
-which uses \code{\link[=detect_cluster_column]{detect_cluster_column()}} and falls back to the active
-identities.}
+\item{group_by}{Metadata column used to group cells, or \code{"ident"} for the
+active identity. Default is NULL, which uses \code{\link[=default_group_column]{default_group_column()}}
+(the cell-type annotation when present, otherwise the clusters).}
 
 \item{sample_col}{Metadata column holding sample labels. Default is NULL,
 which uses \code{\link[=detect_sample_column]{detect_sample_column()}}.}
 
-\item{bars}{Either "samples" (one bar per sample) or "clusters" (one bar
-per cluster). Default is "samples".}
+\item{bars}{Either "samples" (one bar per sample) or "groups" (one bar per
+group). Default is "samples".}
 }
 \value{
 A list with \code{plot} (a ggplot object), \code{data} (a data frame with
@@ -31,13 +31,13 @@ character message, or NULL).
 }
 \description{
 Draws stacked bars showing the percent of cells in each group. With
-\code{bars = "samples"} (default) there is one bar per sample, filled by
-cluster, so each bar shows that sample's cluster make-up and sums to 100\%.
-With \code{bars = "clusters"} there is one bar per cluster, filled by sample.
+\code{bars = "samples"} (default) there is one bar per sample, filled by group,
+so each bar shows that sample's make-up and sums to 100\%. With
+\code{bars = "groups"} there is one bar per group, filled by sample.
 }
 \details{
 If the object has no usable sample column, a single "All cells" bar filled
-by cluster is drawn and a notice explains why.
+by group is drawn and a notice explains why.
 }
 \examples{
 \dontrun{

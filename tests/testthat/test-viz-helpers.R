@@ -20,6 +20,22 @@ test_that("detect_sample_column returns SampleLabel only when it has values", {
   expect_null(detect_sample_column(obj))
 })
 
+test_that("group columns are categorical and the default prefers cell_annotation", {
+  obj <- make_toy_seurat(clusters = rep(c("0", "1"), length.out = 6))
+  obj$score <- seq_len(6)
+  groups <- list_group_columns(obj)
+  expect_true(all(c("seurat_clusters", "SampleLabel") %in% groups))
+  expect_false("score" %in% groups)
+  expect_equal(default_group_column(obj), "seurat_clusters")
+
+  obj$cell_annotation <- factor(rep(c("T cells", "B cells"), length.out = 6))
+  expect_equal(default_group_column(obj), "cell_annotation")
+
+  obj$cell_annotation <- NULL
+  obj$seurat_clusters <- NULL
+  expect_equal(default_group_column(obj), "ident")
+})
+
 test_that("save_viz_plot writes png, pdf and svg with the requested extension", {
   p <- ggplot2::ggplot(data.frame(x = 1:3, y = 1:3), ggplot2::aes(x, y)) +
     ggplot2::geom_point()

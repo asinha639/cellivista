@@ -210,7 +210,9 @@ help_texts <- c(
   vizExportHelp = "Filename, size, and format used when downloading this plot.",
   vizHeatmapGenesHelp = "Top positive marker genes per cluster, taken from the Cluster-wise DGEA results of this session.",
   vizHeatmapCellsHelp = "Maximum cells drawn per cluster. Lower values use less memory on large datasets.",
-  vizCompositionBarsHelp = "Samples: one bar per sample, filled by cluster. Clusters: one bar per cluster, filled by sample. Each bar sums to 100%."
+  vizCompositionBarsHelp = "Samples: one bar per sample, filled by group. Groups: one bar per group, filled by sample. Each bar sums to 100%.",
+  vizGroupByHelp = "How cells are grouped. Defaults to the cell-type annotation (cell_annotation) when the object has one, otherwise seurat_clusters.",
+  vizUmapLabelHelp = "Write group names on the UMAP; labels are moved apart so they do not overlap. On by default for annotated objects."
 )
 
 make_viz_export_panel <- function(id_prefix, default_filename, default_width = 8, default_height = 7) {
@@ -1007,6 +1009,8 @@ ui <- fluidPage(
           conditionalPanel(condition = "input.loadRDSViz == true", fileInput("inputRDSViz", "Select Seurat .rds file")),
           wellPanel(
             h4("UMAP palette"),
+            selectInput("vizUmapGroup", help_label("Group cells by", "vizGroupByHelp"), choices = c("Active identity" = "ident")),
+            checkboxInput("vizUmapLabel", help_label("Label groups on plot", "vizUmapLabelHelp"), value = FALSE),
             selectInput("vizUmapPalette", help_label("Color palette", "vizUmapPaletteHelp"), choices = c("Default" = "default", "Okabe-Ito" = "okabe_ito", "viridis" = "viridis"), selected = "default"),
             make_viz_export_panel("vizUmap", "umap_palette", default_width = 8, default_height = 7),
             actionButton("runVizUmap", "Plot UMAP", class = "btn-primary")
@@ -1020,7 +1024,8 @@ ui <- fluidPage(
           ),
           wellPanel(
             h4("Cluster composition"),
-            selectInput("vizCompositionBars", help_label("Bars", "vizCompositionBarsHelp"), choices = c("samples", "clusters"), selected = "samples"),
+            selectInput("vizCompositionGroup", help_label("Group cells by", "vizGroupByHelp"), choices = c("Active identity" = "ident")),
+            selectInput("vizCompositionBars", help_label("Bars", "vizCompositionBarsHelp"), choices = c("samples", "groups"), selected = "samples"),
             make_viz_export_panel("vizComposition", "cluster_composition", default_width = 8, default_height = 6),
             actionButton("runVizComposition", "Plot composition", class = "btn-primary")
           )
@@ -2481,6 +2486,21 @@ server <- function(input, output, session) {
   # Visualization Options tab
   viz_rv <- reactiveValues(umap_plot = NULL, umap_preview = NULL, heatmap_plot = NULL, heatmap_preview = NULL, composition_plot = NULL, composition_preview = NULL)
   viz_dir <- file.path(session_tmp, "visualization")
+  viz_group_inputs <- c("vizUmapGroup", "vizCompositionGroup")
+
+  # Object for this tab; cached so an uploaded .rds is read once per upload.
+  viz_obj <- reactive(get_current_or_uploaded(input$loadRDSViz, input$inputRDSViz))
+  viz_group_choice <- function(x) if (is.null(x) || !nzchar(x)) NULL else x
+
+  # Refresh "Group cells by" choices and the label default when the object changes.
+  observe({
+    obj <- tryCatch(viz_obj(), error = function(e) NULL)
+    req(obj)
+    choices <- c("Active identity" = "ident", stats::setNames(list_group_columns(obj), list_group_columns(obj)))
+    default_group <- default_group_column(obj)
+    for (id in viz_group_inputs) updateSelectInput(session, id, choices = choices, selected = default_group)
+    updateCheckboxInput(session, "vizUmapLabel", value = identical(default_group, "cell_annotation"))
+  })
 
   # Saves a viz plot for download; shows a readable notification instead of crashing on failure.
   viz_download_handler <- function(plot_key, id_prefix, default_filename) {
@@ -2521,8 +2541,7 @@ server <- function(input, output, session) {
     viz_rv$umap_plot <- NULL
     viz_rv$umap_preview <- NULL
     tryCatch({
-      seurat_input <- get_current_or_uploaded(input$loadRDSViz, input$inputRDSViz)
-      res <- plot_umap_palette(seurat_input, palette = input$vizUmapPalette)
+      res <- plot_umap_palette(viz_obj(), palette = input$vizUmapPalette, group_by = viz_group_choice(input$vizUmapGroup), label = isTRUE(input$vizUmapLabel))
       viz_rv$umap_preview <- save_viz_plot(res$plot, file.path(viz_dir, "preview_umap_palette"), format = "png", width = input$vizUmap_width, height = input$vizUmap_height)
       viz_rv$umap_plot <- res$plot
       output$vizUmapStatus <- renderText(paste(c("UMAP plotted.", res$notice), collapse = "\n"))
@@ -2560,8 +2579,7 @@ server <- function(input, output, session) {
     viz_rv$composition_plot <- NULL
     viz_rv$composition_preview <- NULL
     tryCatch({
-      seurat_input <- get_current_or_uploaded(input$loadRDSViz, input$inputRDSViz)
-      res <- plot_cluster_composition(seurat_input, bars = input$vizCompositionBars)
+      res <- plot_cluster_composition(viz_obj(), group_by = viz_group_choice(input$vizCompositionGroup), bars = input$vizCompositionBars)
       viz_rv$composition_preview <- save_viz_plot(res$plot, file.path(viz_dir, "preview_cluster_composition"), format = "png", width = input$vizComposition_width, height = input$vizComposition_height)
       viz_rv$composition_plot <- res$plot
       output$vizCompositionStatus <- renderText(paste(c("Cluster composition plotted.", res$notice), collapse = "\n"))

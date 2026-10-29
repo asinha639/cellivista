@@ -1,16 +1,18 @@
 #' Plot a Cluster UMAP with a Selectable Color Palette
 #'
-#' Draws the UMAP colored by cluster using Seurat's default colors, the
+#' Draws the UMAP colored by group using Seurat's default colors, the
 #' colorblind-safe Okabe-Ito palette, or viridis. Okabe-Ito has only 8
-#' colors, so with more than 8 clusters the plot falls back to viridis and
+#' colors, so with more than 8 groups the plot falls back to viridis and
 #' returns a notice explaining why.
 #'
 #' @param seurat_obj A Seurat object with a UMAP reduction.
 #' @param palette One of "default", "okabe_ito", or "viridis". Default is
 #'   "default".
-#' @param cluster_col Metadata column holding cluster labels. Default is NULL,
-#'   which uses [detect_cluster_column()] and falls back to the active
-#'   identities.
+#' @param group_by Metadata column used to color cells, or `"ident"` for the
+#'   active identity. Default is NULL, which uses [default_group_column()]
+#'   (the cell-type annotation when present, otherwise the clusters).
+#' @param label Logical; draw group names on the plot, repelled so they do not
+#'   overlap. Default is FALSE.
 #' @param reduction Name of the reduction to plot. Default is "umap".
 #'
 #' @return A list with `plot` (a ggplot object), `palette_used` (the palette
@@ -19,12 +21,13 @@
 #'
 #' @examples
 #' \dontrun{
-#' res <- plot_umap_palette(seurat_obj, palette = "okabe_ito")
+#' res <- plot_umap_palette(seurat_obj, palette = "okabe_ito", label = TRUE)
 #' res$plot
 #' }
 plot_umap_palette <- function(seurat_obj,
                               palette = c("default", "okabe_ito", "viridis"),
-                              cluster_col = NULL,
+                              group_by = NULL,
+                              label = FALSE,
                               reduction = "umap") {
   palette <- match.arg(palette)
   if (is.null(seurat_obj) || !inherits(seurat_obj, "Seurat")) {
@@ -34,22 +37,8 @@ plot_umap_palette <- function(seurat_obj,
     stop("No '", reduction, "' reduction found. Run the Downstream Analysis tab first.")
   }
 
-  if (is.null(cluster_col)) {
-    cluster_col <- detect_cluster_column(seurat_obj)
-  } else if (!cluster_col %in% colnames(seurat_obj@meta.data)) {
-    stop("Cluster column not found in metadata: ", cluster_col)
-  }
-
-  groups <- if (is.null(cluster_col)) {
-    Seurat::Idents(seurat_obj)
-  } else {
-    seurat_obj@meta.data[[cluster_col]]
-  }
-  group_levels <- if (is.factor(groups)) {
-    levels(droplevels(groups))
-  } else {
-    sort(unique(as.character(groups)))
-  }
+  groups <- resolve_viz_groups(seurat_obj, group_by)
+  group_levels <- groups$levels
   n_groups <- length(group_levels)
 
   palette_used <- palette
@@ -62,7 +51,7 @@ plot_umap_palette <- function(seurat_obj,
     palette_used <- "viridis"
     notice <- paste0(
       "Okabe-Ito has only 8 colors but there are ", n_groups,
-      " clusters, so viridis was used instead."
+      " groups, so viridis was used instead."
     )
   }
 
@@ -76,8 +65,10 @@ plot_umap_palette <- function(seurat_obj,
   plot_obj <- Seurat::DimPlot(
     seurat_obj,
     reduction = reduction,
-    group.by = cluster_col,
-    cols = cols
+    group.by = groups$column,
+    cols = cols,
+    label = isTRUE(label),
+    repel = isTRUE(label)
   )
 
   list(plot = plot_obj, palette_used = palette_used, notice = notice)

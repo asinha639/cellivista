@@ -1,21 +1,21 @@
 #' Plot Cluster Composition as Stacked Percent Bars
 #'
 #' Draws stacked bars showing the percent of cells in each group. With
-#' `bars = "samples"` (default) there is one bar per sample, filled by
-#' cluster, so each bar shows that sample's cluster make-up and sums to 100%.
-#' With `bars = "clusters"` there is one bar per cluster, filled by sample.
+#' `bars = "samples"` (default) there is one bar per sample, filled by group,
+#' so each bar shows that sample's make-up and sums to 100%. With
+#' `bars = "groups"` there is one bar per group, filled by sample.
 #'
 #' If the object has no usable sample column, a single "All cells" bar filled
-#' by cluster is drawn and a notice explains why.
+#' by group is drawn and a notice explains why.
 #'
 #' @param seurat_obj A clustered Seurat object.
-#' @param cluster_col Metadata column holding cluster labels. Default is NULL,
-#'   which uses [detect_cluster_column()] and falls back to the active
-#'   identities.
+#' @param group_by Metadata column used to group cells, or `"ident"` for the
+#'   active identity. Default is NULL, which uses [default_group_column()]
+#'   (the cell-type annotation when present, otherwise the clusters).
 #' @param sample_col Metadata column holding sample labels. Default is NULL,
 #'   which uses [detect_sample_column()].
-#' @param bars Either "samples" (one bar per sample) or "clusters" (one bar
-#'   per cluster). Default is "samples".
+#' @param bars Either "samples" (one bar per sample) or "groups" (one bar per
+#'   group). Default is "samples".
 #'
 #' @return A list with `plot` (a ggplot object), `data` (a data frame with
 #'   columns `bar`, `fill`, `n_cells`, and `percent`), and `notice` (a
@@ -28,27 +28,15 @@
 #' res$plot
 #' }
 plot_cluster_composition <- function(seurat_obj,
-                                     cluster_col = NULL,
+                                     group_by = NULL,
                                      sample_col = NULL,
-                                     bars = c("samples", "clusters")) {
+                                     bars = c("samples", "groups")) {
   bars <- match.arg(bars)
   if (is.null(seurat_obj) || !inherits(seurat_obj, "Seurat")) {
     stop("seurat_obj must be a Seurat object.")
   }
   meta <- seurat_obj@meta.data
-
-  if (is.null(cluster_col)) {
-    cluster_col <- detect_cluster_column(seurat_obj)
-  } else if (!cluster_col %in% colnames(meta)) {
-    stop("Cluster column not found in metadata: ", cluster_col)
-  }
-  clusters <- if (is.null(cluster_col)) Seurat::Idents(seurat_obj) else meta[[cluster_col]]
-  cluster_levels <- if (is.factor(clusters)) {
-    levels(droplevels(clusters))
-  } else {
-    sort(unique(as.character(clusters)))
-  }
-  clusters <- factor(as.character(clusters), levels = cluster_levels)
+  groups <- resolve_viz_groups(seurat_obj, group_by)
 
   if (is.null(sample_col)) {
     sample_col <- detect_sample_column(seurat_obj)
@@ -69,13 +57,13 @@ plot_cluster_composition <- function(seurat_obj,
 
   if (identical(bars, "samples")) {
     bar <- samples
-    fill <- clusters
+    fill <- groups$values
     x_lab <- "Sample"
-    fill_lab <- "Cluster"
+    fill_lab <- groups$label
   } else {
-    bar <- clusters
+    bar <- groups$values
     fill <- samples
-    x_lab <- "Cluster"
+    x_lab <- groups$label
     fill_lab <- "Sample"
   }
 

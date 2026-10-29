@@ -2,9 +2,11 @@
 
 export(annotate_clusters)
 export(convert_matrix_to_rds)
+export(default_group_column)
 export(detect_cluster_column)
 export(detect_sample_column)
 export(integrate_seurat_samples)
+export(list_group_columns)
 export(plot_cluster_composition)
 export(plot_genes_feature)
 export(plot_marker_heatmap)

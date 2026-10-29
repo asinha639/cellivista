@@ -57,6 +57,93 @@ detect_sample_column <- function(seurat_obj) {
   "SampleLabel"
 }
 
+#' List Categorical Metadata Columns for Grouping Cells
+#'
+#' Returns metadata columns that can group cells in a plot: factor, character,
+#' or logical columns with at least one value and at most `max_levels`
+#' distinct values. Numeric QC columns and per-cell identifiers are left out.
+#'
+#' @param seurat_obj A Seurat object.
+#' @param max_levels Maximum number of distinct values a column may have.
+#'   Default is 200.
+#'
+#' @return A character vector of column names (possibly empty).
+#' @export
+#'
+#' @examples
+#' \dontrun{
+#' list_group_columns(seurat_obj)
+#' }
+list_group_columns <- function(seurat_obj, max_levels = 200) {
+  if (is.null(seurat_obj) || !inherits(seurat_obj, "Seurat")) {
+    stop("seurat_obj must be a Seurat object.")
+  }
+  meta <- seurat_obj@meta.data
+  keep <- vapply(colnames(meta), function(col) {
+    values <- meta[[col]]
+    if (!(is.factor(values) || is.character(values) || is.logical(values))) {
+      return(FALSE)
+    }
+    n_values <- length(unique(stats::na.omit(as.character(values))))
+    n_values >= 1 && n_values <= max_levels
+  }, logical(1))
+  colnames(meta)[keep]
+}
+
+#' Choose the Default Grouping for Visualization Plots
+#'
+#' Prefers the cell-type annotation written by [annotate_clusters()]
+#' (`cell_annotation`), then the cluster column from [detect_cluster_column()],
+#' then the active identity.
+#'
+#' @param seurat_obj A Seurat object.
+#'
+#' @return A metadata column name, or `"ident"` for the active identity.
+#' @export
+#'
+#' @examples
+#' \dontrun{
+#' default_group_column(seurat_obj)
+#' }
+default_group_column <- function(seurat_obj) {
+  if (is.null(seurat_obj) || !inherits(seurat_obj, "Seurat")) {
+    stop("seurat_obj must be a Seurat object.")
+  }
+  if ("cell_annotation" %in% colnames(seurat_obj@meta.data)) {
+    labels <- as.character(seurat_obj@meta.data$cell_annotation)
+    if (!all(is.na(labels) | !nzchar(trimws(labels)))) {
+      return("cell_annotation")
+    }
+  }
+  cluster_col <- detect_cluster_column(seurat_obj)
+  if (is.null(cluster_col)) "ident" else cluster_col
+}
+
+# Resolves a grouping choice ("ident", a metadata column, or NULL for the
+# default) into per-cell group values and a display label.
+resolve_viz_groups <- function(seurat_obj, group_by = NULL) {
+  if (is.null(group_by)) {
+    group_by <- default_group_column(seurat_obj)
+  }
+  if (identical(group_by, "ident")) {
+    values <- Seurat::Idents(seurat_obj)
+    label <- "Identity"
+  } else if (group_by %in% colnames(seurat_obj@meta.data)) {
+    values <- seurat_obj@meta.data[[group_by]]
+    label <- if (identical(group_by, "seurat_clusters")) "Cluster" else group_by
+  } else {
+    stop("Grouping column not found in metadata: ", group_by)
+  }
+  group_levels <- if (is.factor(values)) {
+    levels(droplevels(values))
+  } else {
+    sort(unique(stats::na.omit(as.character(values))))
+  }
+  values <- factor(as.character(values), levels = group_levels)
+  names(values) <- colnames(seurat_obj)
+  list(column = group_by, values = values, levels = group_levels, label = label)
+}
+
 #' Save a Visualization Plot to Disk
 #'
 #' Writes a ggplot object as png, pdf, or svg. png and svg use the same

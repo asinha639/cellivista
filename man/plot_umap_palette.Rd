@@ -7,7 +7,8 @@
 plot_umap_palette(
   seurat_obj,
   palette = c("default", "okabe_ito", "viridis"),
-  cluster_col = NULL,
+  group_by = NULL,
+  label = FALSE,
   reduction = "umap"
 )
 }
@@ -17,9 +18,12 @@ plot_umap_palette(
 \item{palette}{One of "default", "okabe_ito", or "viridis". Default is
 "default".}
 
-\item{cluster_col}{Metadata column holding cluster labels. Default is NULL,
-which uses \code{\link[=detect_cluster_column]{detect_cluster_column()}} and falls back to the active
-identities.}
+\item{group_by}{Metadata column used to color cells, or \code{"ident"} for the
+active identity. Default is NULL, which uses \code{\link[=default_group_column]{default_group_column()}}
+(the cell-type annotation when present, otherwise the clusters).}
+
+\item{label}{Logical; draw group names on the plot, repelled so they do not
+overlap. Default is FALSE.}
 
 \item{reduction}{Name of the reduction to plot. Default is "umap".}
 }
@@ -28,14 +32,14 @@ A list with \code{plot} (a ggplot object), \code{palette_used} (the palette
 actually applied), and \code{notice} (a character message, or NULL).
 }
 \description{
-Draws the UMAP colored by cluster using Seurat's default colors, the
+Draws the UMAP colored by group using Seurat's default colors, the
 colorblind-safe Okabe-Ito palette, or viridis. Okabe-Ito has only 8
-colors, so with more than 8 clusters the plot falls back to viridis and
+colors, so with more than 8 groups the plot falls back to viridis and
 returns a notice explaining why.
 }
 \examples{
 \dontrun{
-res <- plot_umap_palette(seurat_obj, palette = "okabe_ito")
+res <- plot_umap_palette(seurat_obj, palette = "okabe_ito", label = TRUE)
 res$plot
 }
 }
