@@ -1,0 +1,7 @@
+^\.github$
+^CITATION\.cff$
+^CONTRIBUTING\.md$
+^app\.R$
+^docs$
+^paper$
+^www$
