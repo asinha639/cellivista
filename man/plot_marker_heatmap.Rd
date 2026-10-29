@@ -9,6 +9,7 @@ plot_marker_heatmap(
   markers,
   n_genes = 5,
   cells_per_cluster = 200,
+  group_by = NULL,
   cluster_col = NULL,
   assay = NULL,
   seed = 1
@@ -17,16 +18,20 @@ plot_marker_heatmap(
 \arguments{
 \item{seurat_obj}{A clustered Seurat object.}
 
-\item{markers}{A data frame of marker results with columns \code{cluster},
-\code{gene}, and \code{avg_log2FC}.}
+\item{markers}{A data frame of marker results with columns \code{cluster} and
+\code{gene}, and optionally \code{avg_log2FC}.}
 
 \item{n_genes}{Number of top positive markers per cluster. Default is 5.}
 
 \item{cells_per_cluster}{Maximum number of cells drawn per cluster.
 Default is 200.}
 
-\item{cluster_col}{Metadata column holding cluster labels. Default is NULL,
-which uses \code{\link[=detect_cluster_column]{detect_cluster_column()}} and falls back to the active
+\item{group_by}{Grouping shown on the heatmap: a metadata column, or
+\code{"ident"} for the active identity. Default is NULL, which uses
+\code{\link[=default_group_column]{default_group_column()}}.}
+
+\item{cluster_col}{Metadata column the marker clusters refer to. Default is
+NULL, which uses \code{\link[=detect_cluster_column]{detect_cluster_column()}} and falls back to the active
 identities.}
 
 \item{assay}{Assay to plot. Default is NULL, which uses "SCT" when present
@@ -37,15 +42,27 @@ afterwards. Default is 1.}
 }
 \value{
 A list with \code{plot} (a ggplot object), \code{genes} (the plotted genes),
-\code{n_cells} (cells drawn), and \code{notice} (a character message, or NULL).
+\code{n_cells} (cells drawn), \code{ranking} (\code{"avg_log2FC"} or \code{"file order"}),
+\code{grouping} (a description of how cells are grouped), and \code{notice} (a
+character message, or NULL).
 }
 \description{
 Draws a \code{Seurat::DoHeatmap()} of the top marker genes per cluster, taken
-from existing cluster-wise DGEA results (the \code{all_marker.csv} written by
-\code{\link[=run_clusterwise_dgea]{run_clusterwise_dgea()}}). Markers are never recomputed here. Cells are
-downsampled per cluster before scaling so large datasets stay within memory.
+from existing cluster-wise DGEA results (see \code{\link[=read_marker_table]{read_marker_table()}}).
+Markers are never recomputed here. Cells are downsampled per cluster
+before scaling so large datasets stay within memory.
 }
 \details{
+Selection rule: the top \code{n_genes} positive markers per cluster, ranked by
+\code{avg_log2FC}. When the table has no \code{avg_log2FC} column
+(\code{top15_marker.csv}), its row order is kept, since the DGEA tab already
+ranked it by \code{avg_log2FC}.
+
+Markers are keyed by cluster. When \code{group_by} is another grouping such as
+the cell-type annotation, each cluster is mapped to its value in that
+grouping (several clusters may share one). If any cluster maps to more than
+one value, the heatmap is grouped by cluster instead and a notice says so.
+
 Marker clusters or genes that are absent from \code{seurat_obj} are dropped with
 a notice. If no clusters match, or fewer than half of the selected marker
 genes are present in the object, the function stops instead of drawing a
@@ -53,7 +70,7 @@ misleading heatmap.
 }
 \examples{
 \dontrun{
-markers <- readr::read_csv("DGEA/all_marker.csv")
+markers <- read_marker_table("DGEA/all_marker.csv")
 res <- plot_marker_heatmap(seurat_obj, markers, n_genes = 10)
 res$plot
 }

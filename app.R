@@ -208,7 +208,8 @@ help_texts <- c(
   help_texts,
   vizUmapPaletteHelp = "Default keeps Seurat colors. Okabe-Ito is colorblind-safe but has 8 colors; with more clusters viridis is used.",
   vizExportHelp = "Filename, size, and format used when downloading this plot.",
-  vizHeatmapGenesHelp = "Top positive marker genes per cluster, taken from the Cluster-wise DGEA results of this session.",
+  vizHeatmapGenesHelp = "Top N positive markers per cluster, ranked by avg_log2FC. Markers come from the uploaded table, otherwise from this session's Cluster-wise DGEA run.",
+  vizHeatmapMarkersHelp = "Optional. all_marker.csv is ranked by its avg_log2FC column; top15_marker.csv has no avg_log2FC, so its order (already ranked by avg_log2FC) is kept and at most 15 genes per cluster are available.",
   vizHeatmapCellsHelp = "Maximum cells drawn per cluster. Lower values use less memory on large datasets.",
   vizCompositionBarsHelp = "Samples: one bar per sample, filled by group. Groups: one bar per group, filled by sample. Each bar sums to 100%.",
   vizGroupByHelp = "How cells are grouped. Defaults to the cell-type annotation (cell_annotation) when the object has one, otherwise seurat_clusters.",
@@ -1017,6 +1018,8 @@ ui <- fluidPage(
           ),
           wellPanel(
             h4("Marker heatmap"),
+            fileInput("vizHeatmapMarkers", help_label("Upload marker table (CSV from the Cluster-wise DGEA tab: all_marker.csv or top15_marker.csv)", "vizHeatmapMarkersHelp"), accept = ".csv"),
+            selectInput("vizHeatmapGroup", help_label("Group cells by", "vizGroupByHelp"), choices = c("Active identity" = "ident")),
             selectInput("vizHeatmapGenes", help_label("Top genes per cluster", "vizHeatmapGenesHelp"), choices = c(3, 5, 10, 15), selected = 5),
             numericInput("vizHeatmapCells", help_label("Cells per cluster", "vizHeatmapCellsHelp"), value = 200, min = 10, max = 5000, step = 50),
             make_viz_export_panel("vizHeatmap", "marker_heatmap", default_width = 10, default_height = 8),
@@ -2486,7 +2489,7 @@ server <- function(input, output, session) {
   # Visualization Options tab
   viz_rv <- reactiveValues(umap_plot = NULL, umap_preview = NULL, heatmap_plot = NULL, heatmap_preview = NULL, composition_plot = NULL, composition_preview = NULL)
   viz_dir <- file.path(session_tmp, "visualization")
-  viz_group_inputs <- c("vizUmapGroup", "vizCompositionGroup")
+  viz_group_inputs <- c("vizUmapGroup", "vizHeatmapGroup", "vizCompositionGroup")
 
   # Object for this tab; cached so an uploaded .rds is read once per upload.
   viz_obj <- reactive(get_current_or_uploaded(input$loadRDSViz, input$inputRDSViz))
@@ -2555,20 +2558,18 @@ server <- function(input, output, session) {
     viz_rv$heatmap_plot <- NULL
     viz_rv$heatmap_preview <- NULL
     tryCatch({
-      marker_path <- rv$dgea_csv_all
-      if (is.null(marker_path) || !file.exists(marker_path)) {
-        stop("No marker results found. Run the Cluster-wise DGEA tab first.")
-      }
-      markers <- readr::read_csv(marker_path, show_col_types = FALSE)
-      seurat_input <- get_current_or_uploaded(input$loadRDSViz, input$inputRDSViz)
+      marker_source <- choose_marker_source(input$vizHeatmapMarkers$datapath, rv$dgea_csv_all)
+      markers <- read_marker_table(marker_source$path)
+      seurat_input <- viz_obj()
       withProgress(message = "Plotting marker heatmap...", value = 0.3, {
-        res <- plot_marker_heatmap(seurat_input, markers, n_genes = as.integer(input$vizHeatmapGenes), cells_per_cluster = input$vizHeatmapCells)
+        res <- plot_marker_heatmap(seurat_input, markers, n_genes = as.integer(input$vizHeatmapGenes), cells_per_cluster = input$vizHeatmapCells, group_by = viz_group_choice(input$vizHeatmapGroup))
         viz_rv$heatmap_preview <- save_viz_plot(res$plot, file.path(viz_dir, "preview_marker_heatmap"), format = "png", width = input$vizHeatmap_width, height = input$vizHeatmap_height)
         incProgress(1)
       })
       viz_rv$heatmap_plot <- res$plot
-      upload_note <- if (isTRUE(input$loadRDSViz)) "Markers come from this session's Cluster-wise DGEA run." else NULL
-      output$vizHeatmapStatus <- renderText(paste(c(paste0("Heatmap plotted (", length(res$genes), " genes, ", res$n_cells, " cells)."), upload_note, res$notice), collapse = "\n"))
+      source_note <- if (identical(marker_source$source, "uploaded")) paste0("Markers: uploaded ", input$vizHeatmapMarkers$name, ".") else "Markers: this session's Cluster-wise DGEA run."
+      rank_note <- paste0("Top ", input$vizHeatmapGenes, " positive markers per cluster, ranked by avg_log2FC", if (identical(res$ranking, "file order")) " (file order kept: the table has no avg_log2FC column, as in top15_marker.csv)." else ".")
+      output$vizHeatmapStatus <- renderText(paste(c(paste0("Heatmap plotted (", length(res$genes), " genes, ", res$n_cells, " cells)."), source_note, rank_note, res$grouping, res$notice), collapse = "\n"))
     }, error = function(e) output$vizHeatmapStatus <- renderText(paste("Heatmap plotting failed:", conditionMessage(e))))
   })
   output$vizHeatmapDisplay <- renderUI(viz_preview_panel("Marker heatmap", viz_rv$heatmap_preview, "downloadVizHeatmap"))
