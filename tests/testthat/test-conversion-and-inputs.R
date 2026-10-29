@@ -104,6 +104,8 @@ test_that("convert_matrix_to_rds rejects missing inputs and invalid label config
 })
 
 test_that("read_h5_to_seurat reads a minimal 10x H5 file and remaps labels", {
+  skip_if_not_installed("rhdf5")
+  skip_if_not_installed("hdf5r")
   h5_path <- tempfile(fileext = ".h5")
   counts <- Matrix::Matrix(
     c(

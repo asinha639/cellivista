@@ -30,13 +30,14 @@ test_that("integrate_seurat_samples integrates multiple samples and preserves me
     sample_labels = rep(c("Sample1", "Sample2"), each = 20)
   )
 
-  out <- integrate_seurat_samples(
+  # Seurat warns about too few features per PC on the toy data.
+  out <- suppressWarnings(integrate_seurat_samples(
     seurat_obj = obj,
     nfeatures = 20,
     save_rds = FALSE,
     output_dir = tempfile(pattern = "integrated-"),
     plot_options = NULL
-  )
+  ))
 
   expect_s4_class(out, "Seurat")
   expect_true("integrated" %in% Seurat::Assays(out))
