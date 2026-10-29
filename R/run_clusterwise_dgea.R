@@ -78,10 +78,10 @@ run_clusterwise_dgea <- function(seurat_obj,
     dplyr::arrange(dplyr::desc(.data$avg_log2FC), .by_group = TRUE) %>%
     dplyr::slice_head(n = 15) %>%
     dplyr::ungroup() %>%
-    dplyr::select(.data$avg_log2FC, .data$cluster, .data$gene)
+    dplyr::select(dplyr::all_of(c("avg_log2FC", "cluster", "gene")))
   
   readr::write_csv(
-    top15_marker %>% dplyr::select(.data$cluster, .data$gene),
+    top15_marker %>% dplyr::select(dplyr::all_of(c("cluster", "gene"))),
     file.path(output_dir, "top15_marker.csv")
   )
   
