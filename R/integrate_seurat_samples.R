@@ -25,7 +25,9 @@
 #' @export
 #'
 #' @examples
+#' \dontrun{
 #' integrated_obj <- integrate_seurat_samples(seurat_obj_doubletfiltered)
+#' }
 integrate_seurat_samples <- function(seurat_obj,
                                      output_path = "RDS_Files/integrated_seurat.obj.rds",
                                      nfeatures = 3000,

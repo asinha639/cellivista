@@ -54,5 +54,7 @@ A Seurat object with integrated expression data.
 Performs normalization, feature selection, anchor finding, and data integration across multiple Seurat samples.
 }
 \examples{
+\dontrun{
 integrated_obj <- integrate_seurat_samples(seurat_obj_doubletfiltered)
+}
 }

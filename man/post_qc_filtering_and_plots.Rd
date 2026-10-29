@@ -39,5 +39,7 @@ Filtered Seurat object.
 Applies user-defined QC filters to a Seurat object, generates post-QC plots, and optionally saves the object as an RDS file.
 }
 \examples{
+\dontrun{
 seurat_obj <- post_qc_filtering_and_plots(seurat_obj)
+}
 }

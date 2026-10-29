@@ -14,8 +14,14 @@
 #' @export
 #'
 #' @examples
+#' \dontrun{
 #' sample_map <- c("Sample1" = "Control", "Sample2" = "BPV")
-#' seurat_obj <- read_h5_to_seurat("data/sample_data.h5", project_name = "PBMC", sample_label_map = sample_map)
+#' seurat_obj <- read_h5_to_seurat(
+#'   "data/sample_data.h5",
+#'   project_name = "PBMC",
+#'   sample_label_map = sample_map
+#' )
+#' }
 read_h5_to_seurat <- function(filepath,
                               project_name = "SeuratProject",
                               min_features = 200,

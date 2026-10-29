@@ -17,7 +17,9 @@
 #' @export
 #'
 #' @examples
+#' \dontrun{
 #' plot_genes_feature(seurat_obj, genes = c("GeneA", "GeneB"))
+#' }
 plot_genes_feature <- function(seurat_obj,
                                genes,
                                cell_type = NULL,

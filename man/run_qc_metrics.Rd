@@ -34,5 +34,12 @@ Calculates mitochondrial read percentages, creates standard violin and scatter p
 and optionally saves them to a specified directory.
 }
 \examples{
-seurat_obj <- run_qc_metrics(seurat_obj, mt_pattern = "^mt-", output_dir = "QC_Plots/", save_plots = FALSE)
+\dontrun{
+seurat_obj <- run_qc_metrics(
+  seurat_obj,
+  mt_pattern = "^mt-",
+  output_dir = "QC_Plots/",
+  save_plots = FALSE
+)
+}
 }

@@ -14,7 +14,14 @@
 #' @export
 #'
 #' @examples
-#' seurat_obj <- run_qc_metrics(seurat_obj, mt_pattern = "^mt-", output_dir = "QC_Plots/", save_plots = FALSE)
+#' \dontrun{
+#' seurat_obj <- run_qc_metrics(
+#'   seurat_obj,
+#'   mt_pattern = "^mt-",
+#'   output_dir = "QC_Plots/",
+#'   save_plots = FALSE
+#' )
+#' }
 run_qc_metrics <- function(seurat_obj,
                            mt_pattern = "^MT-",
                            output_dir = "./Plots",

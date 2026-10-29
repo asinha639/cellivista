@@ -15,7 +15,9 @@
 #' @export
 #'
 #' @examples
+#' \dontrun{
 #' seurat_obj <- post_qc_filtering_and_plots(seurat_obj)
+#' }
 post_qc_filtering_and_plots <- function(seurat_obj,
                                         min_features = 200,
                                         max_features = 7500,

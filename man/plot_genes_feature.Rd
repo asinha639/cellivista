@@ -39,5 +39,7 @@ to one annotated cell type and/or split by a metadata column, and optionally
 saves each plot to disk.
 }
 \examples{
+\dontrun{
 plot_genes_feature(seurat_obj, genes = c("GeneA", "GeneB"))
+}
 }

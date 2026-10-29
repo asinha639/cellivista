@@ -34,6 +34,12 @@ This function reads a 10x Genomics-formatted .h5 file and returns a Seurat objec
 It also extracts sample labels from cell barcodes and allows relabeling.
 }
 \examples{
+\dontrun{
 sample_map <- c("Sample1" = "Control", "Sample2" = "BPV")
-seurat_obj <- read_h5_to_seurat("data/sample_data.h5", project_name = "PBMC", sample_label_map = sample_map)
+seurat_obj <- read_h5_to_seurat(
+  "data/sample_data.h5",
+  project_name = "PBMC",
+  sample_label_map = sample_map
+)
+}
 }
