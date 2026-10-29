@@ -3,22 +3,22 @@ test_that("run_downstream_analysis performs the core workflow on a small object"
     counts = make_toy_counts(n_genes = 10, n_cells = 8, mt_genes = 2),
     sample_labels = rep(c("Sample1", "Sample2"), each = 4)
   )
-  obj <- run_qc_metrics(obj, save_plots = FALSE)
+  obj <- quiet_toy(run_qc_metrics(obj, save_plots = FALSE))
 
-  out <- run_downstream_analysis(
+  out <- quiet_toy(run_downstream_analysis(
     seurat_obj = obj,
     dims = 1:2,
     resolution = 0.2,
     output_dir = tempfile(pattern = "downstream-"),
     save_rds = FALSE,
     save_plots = FALSE
-  )
+  ))
 
   expect_s4_class(out, "Seurat")
   expect_true("seurat_clusters" %in% colnames(out@meta.data))
   expect_true("umap" %in% names(out@reductions))
   expect_error(
-    run_downstream_analysis(obj, dims = integer(0), save_plots = FALSE, save_rds = FALSE),
+    quiet_toy(run_downstream_analysis(obj, dims = integer(0), save_plots = FALSE, save_rds = FALSE)),
     "dims must contain at least one positive integer"
   )
 })
@@ -31,7 +31,7 @@ test_that("integrate_seurat_samples integrates multiple samples and preserves me
   )
 
   # Seurat warns about too few features per PC on the toy data.
-  out <- suppressWarnings(integrate_seurat_samples(
+  out <- quiet_toy(integrate_seurat_samples(
     seurat_obj = obj,
     nfeatures = 20,
     save_rds = FALSE,

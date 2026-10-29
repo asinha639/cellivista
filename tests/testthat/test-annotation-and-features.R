@@ -1,13 +1,13 @@
 test_that("annotate_clusters maps annotations from a vector and a CSV file", {
   obj <- make_umap_ready_seurat()
 
-  vector_result <- annotate_clusters(
+  vector_result <- quiet_toy(annotate_clusters(
     seurat_obj = obj,
     annotations = c("T cell", "B cell"),
     output_dir = tempfile(pattern = "annot-"),
     save_rds = FALSE,
     save_plots = FALSE
-  )
+  ))
 
   expect_s4_class(vector_result, "Seurat")
   expect_equal(as.character(vector_result$cell_annotation), c("T cell", "T cell", "T cell", "T cell", "B cell", "B cell", "B cell", "B cell"))
@@ -26,13 +26,13 @@ test_that("annotate_clusters maps annotations from a vector and a CSV file", {
   )
 
   expect_warning(
-    csv_result <- annotate_clusters(
+    csv_result <- quiet_toy(annotate_clusters(
       seurat_obj = obj,
       annotations = annotation_csv,
       output_dir = tempfile(pattern = "annot-csv-"),
       save_rds = FALSE,
       save_plots = FALSE
-    ),
+    )),
     "unused cluster"
   )
   expect_s4_class(csv_result, "Seurat")
@@ -53,13 +53,16 @@ test_that("annotate_clusters maps annotations from a vector and a CSV file", {
 test_that("plot_genes_feature returns ggplot objects and handles missing genes", {
   obj <- make_umap_ready_seurat()
 
-  plots <- plot_genes_feature(
-    seurat_obj = obj,
-    genes = "Gene1, Gene2, MissingGene, Gene1",
-    cell_type = "T cell",
-    split_by = "SampleLabel",
-    output_dir = tempfile(pattern = "feature-"),
-    save_plots = FALSE
+  expect_warning(
+    plots <- quiet_toy(plot_genes_feature(
+      seurat_obj = obj,
+      genes = "Gene1, Gene2, MissingGene, Gene1",
+      cell_type = "T cell",
+      split_by = "SampleLabel",
+      output_dir = tempfile(pattern = "feature-"),
+      save_plots = FALSE
+    )),
+    "Skipping missing gene"
   )
 
   expect_type(plots, "list")

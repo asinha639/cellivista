@@ -40,12 +40,12 @@ test_that("plot_genes_feature saves one file per valid gene", {
   obj <- make_umap_ready_seurat()
   out_dir <- tempfile(pattern = "feature-save-")
 
-  plots <- plot_genes_feature(
+  plots <- quiet_toy(plot_genes_feature(
     seurat_obj = obj,
     genes = c("Gene1", "Gene2"),
     output_dir = out_dir,
     save_plots = TRUE
-  )
+  ))
 
   expect_equal(names(plots), c("Gene1", "Gene2"))
   saved <- list.files(out_dir, recursive = TRUE)
@@ -87,7 +87,7 @@ test_that("run_qc_metrics saves plots to the output directory", {
   )
   out_dir <- tempfile(pattern = "qc-plots-")
 
-  out <- suppressWarnings(run_qc_metrics(obj, output_dir = out_dir, save_plots = TRUE))
+  out <- quiet_toy(run_qc_metrics(obj, output_dir = out_dir, save_plots = TRUE))
 
   expect_true("percent.mt" %in% colnames(out@meta.data))
   expect_gt(length(list.files(out_dir)), 0)
@@ -98,11 +98,11 @@ test_that("run_downstream_analysis saves the RDS and plots when requested", {
     counts = make_toy_counts(n_genes = 10, n_cells = 8, mt_genes = 2),
     sample_labels = rep(c("Sample1", "Sample2"), each = 4)
   )
-  obj <- suppressWarnings(run_qc_metrics(obj, save_plots = FALSE))
+  obj <- quiet_toy(run_qc_metrics(obj, save_plots = FALSE))
   out_dir <- tempfile(pattern = "downstream-save-")
   rds_path <- file.path(tempfile(pattern = "rds-"), "downstream.rds")
 
-  out <- suppressWarnings(run_downstream_analysis(
+  out <- quiet_toy(run_downstream_analysis(
     seurat_obj = obj,
     dims = 1:2,
     resolution = 0.2,
@@ -137,14 +137,14 @@ test_that("annotate_clusters saves the annotated object", {
   obj <- make_umap_ready_seurat()
   rds_path <- file.path(tempfile(pattern = "annot-"), "annotated.rds")
 
-  out <- annotate_clusters(
+  out <- quiet_toy(annotate_clusters(
     obj,
     annotations = c("Type A", "Type B"),
     output_dir = tempfile(),
     rds_path = rds_path,
     save_rds = TRUE,
     save_plots = FALSE
-  )
+  ))
 
   expect_true(file.exists(rds_path))
   expect_setequal(as.character(unique(out$cell_annotation)), c("Type A", "Type B"))
@@ -155,7 +155,7 @@ test_that("run_clusterwise_dgea writes plots when plot_options is supplied", {
   obj <- make_marker_ready_seurat()
   out_dir <- tempfile(pattern = "dgea-plots-")
 
-  markers <- suppressWarnings(run_clusterwise_dgea(
+  markers <- quiet_toy(run_clusterwise_dgea(
     seurat_obj = obj,
     output_dir = out_dir,
     logfc_threshold = 0,

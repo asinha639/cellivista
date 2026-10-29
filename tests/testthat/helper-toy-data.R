@@ -1,3 +1,40 @@
+# Muffles only warnings that Seurat and its dependencies emit because the toy
+# fixtures are tiny (loess/SVD/kNN limits, constant QC features, counts-layer
+# plotting). Any other warning still surfaces in the test report.
+toy_data_warning_patterns <- c(
+  "span too small",
+  "pseudoinverse used",
+  "neighborhood radius",
+  "reciprocal condition number",
+  "near singularities",
+  "too large a percentage of total singular values",
+  "k.param set larger than number of cells",
+  "same value of nFeature_RNA",
+  "standard deviation is zero",
+  "Default search for \"data\" layer",
+  "No layers found matching search pattern",
+  "Requested number is larger than the number of available items",
+  "Layer counts isn't present in the assay object",
+  "Different cells and/or features from existing assay SCT",
+  "changing from Assay to SCTAssay",
+  "did not converge",
+  "Fewer than 50 features used as input for CCA",
+  "default method for RunUMAP has changed",
+  "low number of groups may produce misleading results"
+)
+
+quiet_toy <- function(expr) {
+  withCallingHandlers(
+    expr,
+    warning = function(w) {
+      if (any(vapply(toy_data_warning_patterns, grepl, logical(1),
+                     x = conditionMessage(w)))) {
+        invokeRestart("muffleWarning")
+      }
+    }
+  )
+}
+
 make_toy_counts <- function(n_genes = 8,
                             n_cells = 6,
                             mt_genes = 2,
@@ -65,12 +102,14 @@ make_umap_ready_seurat <- function(counts = make_toy_counts(n_genes = 10, n_cell
   )
 
   obj <- Seurat::NormalizeData(obj, verbose = FALSE)
-  obj <- suppressWarnings(
+  obj <- quiet_toy(
     Seurat::FindVariableFeatures(obj, nfeatures = min(6, nrow(obj)), verbose = FALSE)
   )
   obj <- Seurat::ScaleData(obj, verbose = FALSE)
-  obj <- Seurat::RunPCA(obj, npcs = min(4, nrow(obj) - 1, ncol(obj) - 1), verbose = FALSE)
-  obj <- suppressWarnings(Seurat::RunUMAP(obj, dims = 1:2, n.neighbors = 3, verbose = FALSE))
+  obj <- quiet_toy(
+    Seurat::RunPCA(obj, npcs = min(4, nrow(obj) - 1, ncol(obj) - 1), verbose = FALSE)
+  )
+  obj <- quiet_toy(Seurat::RunUMAP(obj, dims = 1:2, n.neighbors = 3, verbose = FALSE))
   obj
 }
 

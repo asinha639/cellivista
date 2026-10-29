@@ -2,13 +2,13 @@ test_that("run_clusterwise_dgea returns markers and writes CSV outputs", {
   obj <- make_marker_ready_seurat()
 
   out_dir <- tempfile(pattern = "dgea-")
-  markers <- run_clusterwise_dgea(
+  markers <- quiet_toy(run_clusterwise_dgea(
     seurat_obj = obj,
     output_dir = out_dir,
     logfc_threshold = 0,
     min_pct = 0,
     plot_options = NULL
-  )
+  ))
 
   expect_true(is.data.frame(markers))
   expect_true(nrow(markers) > 0)

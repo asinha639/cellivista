@@ -4,14 +4,14 @@ test_that("run_qc_metrics adds percent.mt and respects validation checks", {
     sample_labels = rep(c("Sample1", "Sample2"), each = 2)
   )
 
-  out <- run_qc_metrics(
+  out <- quiet_toy(run_qc_metrics(
     seurat_obj = obj,
     mt_pattern = "^MT-",
     output_dir = tempfile(pattern = "qc-"),
     sample_split_var = "SampleLabel",
     ylimit = c(0, 100),
     save_plots = FALSE
-  )
+  ))
 
   expect_s4_class(out, "Seurat")
   expect_true("percent.mt" %in% colnames(out@meta.data))
@@ -33,12 +33,12 @@ test_that("post_qc_filtering_and_plots filters cells and saves summary plots", {
     counts = make_toy_counts(n_genes = 6, n_cells = 4, mt_genes = 2),
     sample_labels = rep(c("Sample1", "Sample2"), each = 2)
   )
-  obj <- run_qc_metrics(obj, save_plots = FALSE)
+  obj <- quiet_toy(run_qc_metrics(obj, save_plots = FALSE))
 
   out_dir <- tempfile(pattern = "post-qc-")
   rds_path <- tempfile(fileext = ".rds")
 
-  filtered <- post_qc_filtering_and_plots(
+  filtered <- quiet_toy(post_qc_filtering_and_plots(
     seurat_obj = obj,
     min_features = 0,
     max_features = 10,
@@ -47,7 +47,7 @@ test_that("post_qc_filtering_and_plots filters cells and saves summary plots", {
     sample_split_var = "SampleLabel",
     save_rds = TRUE,
     rds_path = rds_path
-  )
+  ))
 
   expect_s4_class(filtered, "Seurat")
   expect_lte(ncol(filtered), ncol(obj))
