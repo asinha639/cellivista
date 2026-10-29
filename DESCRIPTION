@@ -49,6 +49,7 @@ Suggests:
     tidyr,
     DoubletFinder,
     testthat (>= 3.0.0),
+    covr,
     rhdf5,
     hdf5r
 Remotes:

@@ -4,13 +4,18 @@ on:
   push:
     branches:
       - main
+      - joss-revision
   pull_request:
     branches:
       - main
+  workflow_dispatch:
 
 jobs:
-  test:
+  check:
     runs-on: ubuntu-latest
+    env:
+      GITHUB_PAT: ${{ secrets.GITHUB_TOKEN }}
+      R_KEEP_PKG_SOURCE: yes
 
     steps:
       - name: Checkout repository
@@ -33,7 +38,64 @@ jobs:
             libfontconfig1-dev \
             libfreetype6-dev \
             libpng-dev \
-            libtiff5-dev \
+            libtiff-dev \
+            libjpeg-dev \
+            libcairo2-dev \
+            libharfbuzz-dev \
+            libfribidi-dev
+
+      # DoubletFinder comes from GitHub via the Remotes field in DESCRIPTION.
+      - name: Install R dependencies
+        uses: r-lib/actions/setup-r-dependencies@v2
+        with:
+          extra-packages: |
+            any::rcmdcheck
+            any::BiocManager
+            any::hdf5r
+          needs: check
+
+      - name: Install rhdf5
+        run: |
+          Rscript -e 'BiocManager::install("rhdf5", ask = FALSE, update = FALSE)'
+
+      - name: Verify optional dependencies are installed
+        run: |
+          Rscript -e 'for (p in c("DoubletFinder", "hdf5r", "rhdf5")) stopifnot(requireNamespace(p, quietly = TRUE)); cat("DoubletFinder, hdf5r and rhdf5 available\n")'
+
+      - name: R CMD check
+        uses: r-lib/actions/check-r-package@v2
+        with:
+          args: 'c("--no-manual", "--as-cran")'
+          error-on: '"warning"'
+          upload-snapshots: true
+
+  coverage:
+    runs-on: ubuntu-latest
+    env:
+      GITHUB_PAT: ${{ secrets.GITHUB_TOKEN }}
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up R
+        uses: r-lib/actions/setup-r@v2
+        with:
+          r-version: release
+          use-public-rspm: true
+
+      - name: Install system dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            libcurl4-openssl-dev \
+            libssl-dev \
+            libxml2-dev \
+            libhdf5-dev \
+            libfontconfig1-dev \
+            libfreetype6-dev \
+            libpng-dev \
+            libtiff-dev \
             libjpeg-dev \
             libcairo2-dev \
             libharfbuzz-dev \
@@ -42,10 +104,8 @@ jobs:
       - name: Install R dependencies
         uses: r-lib/actions/setup-r-dependencies@v2
         with:
-          packages: |
-            deps::.
-            any::testthat
-            any::pkgload
+          extra-packages: |
+            any::covr
             any::BiocManager
             any::hdf5r
 
@@ -53,6 +113,23 @@ jobs:
         run: |
           Rscript -e 'BiocManager::install("rhdf5", ask = FALSE, update = FALSE)'
 
-      - name: Run tests
+      - name: Test coverage and skip report
         run: |
-          Rscript -e 'pkgload::load_all("."); testthat::test_dir("tests/testthat")'
+          Rscript -e '
+            cov <- covr::package_coverage(quiet = FALSE)
+            print(cov)
+            covr::to_cobertura(cov, filename = "coverage.xml")
+            pct <- covr::percent_coverage(cov)
+            res <- as.data.frame(testthat::test_local(".", reporter = "silent", stop_on_failure = FALSE))
+            msg <- sprintf("Coverage: %.1f%%\nTests: %d passed-expectations, %d failed, %d skipped, %d warnings",
+                           pct, sum(res$nb) - sum(res$failed) - sum(res$skipped) - sum(res$error),
+                           sum(res$failed), sum(res$skipped), sum(res$warning))
+            cat(msg, "\n")
+            writeLines(msg, Sys.getenv("GITHUB_STEP_SUMMARY"))
+          '
+
+      - name: Upload coverage report
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage
+          path: coverage.xml
