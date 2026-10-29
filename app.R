@@ -44,7 +44,8 @@ helper_files <- c(
   "plot_genes_feature.R",
   "viz_helpers.R",
   "plot_umap_palette.R",
-  "plot_marker_heatmap.R"
+  "plot_marker_heatmap.R",
+  "plot_cluster_composition.R"
 )
 
 missing_helpers <- helper_files[!file.exists(file.path(helper_dir, helper_files))]
@@ -208,7 +209,8 @@ help_texts <- c(
   vizUmapPaletteHelp = "Default keeps Seurat colors. Okabe-Ito is colorblind-safe but has 8 colors; with more clusters viridis is used.",
   vizExportHelp = "Filename, size, and format used when downloading this plot.",
   vizHeatmapGenesHelp = "Top positive marker genes per cluster, taken from the Cluster-wise DGEA results of this session.",
-  vizHeatmapCellsHelp = "Maximum cells drawn per cluster. Lower values use less memory on large datasets."
+  vizHeatmapCellsHelp = "Maximum cells drawn per cluster. Lower values use less memory on large datasets.",
+  vizCompositionBarsHelp = "Samples: one bar per sample, filled by cluster. Clusters: one bar per cluster, filled by sample. Each bar sums to 100%."
 )
 
 make_viz_export_panel <- function(id_prefix, default_filename, default_width = 8, default_height = 7) {
@@ -1015,13 +1017,21 @@ ui <- fluidPage(
             numericInput("vizHeatmapCells", help_label("Cells per cluster", "vizHeatmapCellsHelp"), value = 200, min = 10, max = 5000, step = 50),
             make_viz_export_panel("vizHeatmap", "marker_heatmap", default_width = 10, default_height = 8),
             actionButton("runVizHeatmap", "Plot heatmap", class = "btn-primary")
+          ),
+          wellPanel(
+            h4("Cluster composition"),
+            selectInput("vizCompositionBars", help_label("Bars", "vizCompositionBarsHelp"), choices = c("samples", "clusters"), selected = "samples"),
+            make_viz_export_panel("vizComposition", "cluster_composition", default_width = 8, default_height = 6),
+            actionButton("runVizComposition", "Plot composition", class = "btn-primary")
           )
         ),
         mainPanel(
           verbatimTextOutput("vizUmapStatus"),
           uiOutput("vizUmapDisplay"),
           verbatimTextOutput("vizHeatmapStatus"),
-          uiOutput("vizHeatmapDisplay")
+          uiOutput("vizHeatmapDisplay"),
+          verbatimTextOutput("vizCompositionStatus"),
+          uiOutput("vizCompositionDisplay")
         )
       )
     )
@@ -2469,7 +2479,7 @@ server <- function(input, output, session) {
   })
 
   # Visualization Options tab
-  viz_rv <- reactiveValues(umap_plot = NULL, umap_preview = NULL, heatmap_plot = NULL, heatmap_preview = NULL)
+  viz_rv <- reactiveValues(umap_plot = NULL, umap_preview = NULL, heatmap_plot = NULL, heatmap_preview = NULL, composition_plot = NULL, composition_preview = NULL)
   viz_dir <- file.path(session_tmp, "visualization")
 
   # Saves a viz plot for download; shows a readable notification instead of crashing on failure.
@@ -2544,6 +2554,21 @@ server <- function(input, output, session) {
   })
   output$vizHeatmapDisplay <- renderUI(viz_preview_panel("Marker heatmap", viz_rv$heatmap_preview, "downloadVizHeatmap"))
   output$downloadVizHeatmap <- viz_download_handler("heatmap_plot", "vizHeatmap", "marker_heatmap")
+
+  observeEvent(input$runVizComposition, {
+    output$vizCompositionStatus <- renderText("Plotting cluster composition...")
+    viz_rv$composition_plot <- NULL
+    viz_rv$composition_preview <- NULL
+    tryCatch({
+      seurat_input <- get_current_or_uploaded(input$loadRDSViz, input$inputRDSViz)
+      res <- plot_cluster_composition(seurat_input, bars = input$vizCompositionBars)
+      viz_rv$composition_preview <- save_viz_plot(res$plot, file.path(viz_dir, "preview_cluster_composition"), format = "png", width = input$vizComposition_width, height = input$vizComposition_height)
+      viz_rv$composition_plot <- res$plot
+      output$vizCompositionStatus <- renderText(paste(c("Cluster composition plotted.", res$notice), collapse = "\n"))
+    }, error = function(e) output$vizCompositionStatus <- renderText(paste("Composition plotting failed:", conditionMessage(e))))
+  })
+  output$vizCompositionDisplay <- renderUI(viz_preview_panel("Cluster composition", viz_rv$composition_preview, "downloadVizComposition"))
+  output$downloadVizComposition <- viz_download_handler("composition_plot", "vizComposition", "cluster_composition")
 }
 
 shinyApp(ui, server)
