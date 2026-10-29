@@ -5,6 +5,7 @@ on:
     branches:
       - main
       - joss-revision
+      - feat-visualizations
   pull_request:
     branches:
       - main
