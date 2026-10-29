@@ -1,5 +1,9 @@
 #' Plot Gene Expression for Display in Shiny and Optional Saving
 #'
+#' Draws a Seurat `FeaturePlot` for each requested gene, optionally restricted
+#' to one annotated cell type and/or split by a metadata column, and optionally
+#' saves each plot to disk.
+#'
 #' @param seurat_obj A Seurat object.
 #' @param genes Character vector of gene names to plot.
 #' @param cell_type Optional. Exact name of the cell type in `cell_annotation` to subset. Default is NULL (no filtering).

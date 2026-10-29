@@ -13,10 +13,21 @@
 #'   Default is 0.075.
 #' @param save_plots Logical; whether to save DoubletFinder plots.
 #'   Default is TRUE.
-#' @param plot_options Optional list with `umap` and `summary` export settings.
+#' @param plot_options Optional list with `umap` and `summary` export settings;
+#'   each a list with optional `filename`, `title`, `format` ("jpeg", "png" or
+#'   "svg"), `width` and `height`.
+#' @param pcs Integer vector (at least two values) of principal components used
+#'   for neighbors, UMAP and DoubletFinder. Default is 1:15.
+#' @param sct Logical; whether DoubletFinder should use SCTransform-based
+#'   parameter sweeps. Default is FALSE.
 #'
 #' @return A Seurat object with doublets removed.
 #' @export
+#'
+#' @examples
+#' \dontrun{
+#' singlets <- remove_doublets(seurat_obj, doublet_rate = 0.075, save_rds = FALSE)
+#' }
 remove_doublets <- function(seurat_obj,
                             output_dir = "./Plots/DoubletFinder",
                             save_rds = TRUE,

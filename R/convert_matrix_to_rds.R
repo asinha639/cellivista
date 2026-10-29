@@ -1,11 +1,17 @@
 #' Convert Matrix/Barcode/Gene Files to a Seurat RDS
 #'
+#' Reads a Matrix Market count matrix with accompanying cell and gene tables,
+#' builds a Seurat object, assigns a `SampleLabel` metadata column, and saves
+#' the object as an RDS file.
+#'
 #' @param matrix_path Path to count matrix (.mtx or .mtx.gz).
 #' @param cell_path Path to cell/barcode file.
 #' @param gene_path Path to gene/features file.
 #' @param output_path Path to save Seurat .rds output.
 #' @param project_name Seurat project name.
-#' @param sample_label_mode Mode to create SampleLabel metadata.
+#' @param sample_label_mode How to create `SampleLabel`: one of
+#'   `"barcode_suffix"` (derived from the barcode suffix), `"single_sample"`
+#'   (all cells get `single_sample_label`), or `"from_cell_file_column"`.
 #' @param single_sample_label Default single/fallback sample label.
 #' @param sample_label_column Column name or 1-based index for SampleLabel when
 #'   `sample_label_mode = "from_cell_file_column"`.
@@ -14,6 +20,18 @@
 #'
 #' @return Seurat object with required SampleLabel metadata.
 #' @export
+#'
+#' @examples
+#' \dontrun{
+#' obj <- convert_matrix_to_rds(
+#'   matrix_path = "matrix.mtx.gz",
+#'   cell_path = "barcodes.tsv.gz",
+#'   gene_path = "features.tsv.gz",
+#'   output_path = "RDS_Files/seurat.obj.rds",
+#'   sample_label_mode = "single_sample",
+#'   single_sample_label = "Control"
+#' )
+#' }
 convert_matrix_to_rds <- function(
   matrix_path,
   cell_path,

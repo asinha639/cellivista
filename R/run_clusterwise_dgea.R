@@ -1,18 +1,26 @@
 #' Run Cluster-wise DGEA for All Clusters
 #'
-#' Performs DGEA and optionally saves violin, dot, and feature plots for top markers.
+#' Finds marker genes for every cluster in `seurat_clusters` using
+#' `FindAllMarkers` on the SCT assay, writes `all_marker.csv` and
+#' `top15_marker.csv`, and optionally saves violin, dot, and feature plots for
+#' top markers.
 #'
-#' @param seurat_obj A Seurat object.
-#' @param output_dir Directory to save output CSVs and plots.
-#' @param logfc_threshold Log fold change threshold.
-#' @param min_pct Minimum percentage expression.
-#' @param plot_options List of plot control parameters:
-#'        - save_violin, save_dot, save_feature (logical)
-#'        - format (jpeg, png, svg), width, height
-#'        - title_prefix (optional)
+#' @param seurat_obj A Seurat object with `seurat_clusters` and an SCT assay.
+#' @param output_dir Directory to save output CSVs and plots. Default is "./DGEA".
+#' @param logfc_threshold Log fold change threshold. Default is 1.
+#' @param min_pct Minimum percentage expression. Default is 0.25.
+#' @param plot_options Optional named list with elements `violin`, `dot` and
+#'   `feature`, each a list of plot control parameters (e.g. `save`, `format`,
+#'   `width`, `height`, `title_prefix`). Default is NULL, in which case no
+#'   plots are saved.
 #'
-#' @return A data frame of marker genes.
+#' @return A data frame of marker genes for all clusters.
 #' @export
+#'
+#' @examples
+#' \dontrun{
+#' markers <- run_clusterwise_dgea(clustered_obj, output_dir = "DGEA")
+#' }
 run_clusterwise_dgea <- function(seurat_obj,
                                  output_dir = "./DGEA",
                                  logfc_threshold = 1,

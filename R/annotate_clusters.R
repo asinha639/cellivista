@@ -1,15 +1,33 @@
 #' Annotate Clusters with User-Defined Cell Types and Visualize
 #'
+#' Maps user-supplied cell-type labels onto the clusters in `seurat_clusters`,
+#' stores them in the `cell_annotation` metadata column, and optionally saves
+#' annotated UMAP, per-sample UMAP, and cell-type proportion pie-chart plots.
+#'
 #' @param seurat_obj A clustered Seurat object (with `seurat_clusters`).
-#' @param annotations A character vector of annotation labels, or a CSV path.
+#' @param annotations Either a path to a CSV file mapping clusters to labels, or
+#'   a character vector with one label per cluster (in cluster order).
 #' @param output_dir Directory to save plots. Default is "./Plots/Annotation".
 #' @param rds_path Path to save annotated object. Default is "RDS_Files/annotated_seurat.obj.rds".
 #' @param save_rds Logical; whether to save the annotated Seurat object. Default is TRUE.
 #' @param save_plots Logical; whether to save annotation plots. Default is TRUE.
-#' @param plot_options Optional list of plot control parameters for each annotation plot.
+#' @param plot_options Optional named list of plot control parameters with
+#'   elements `umap_annotated`, `umap_split_by_sample` and `celltype_piechart`;
+#'   each element a list with optional `save` (logical), `filename`, `title`,
+#'   `format` ("jpeg", "png" or "svg"), `width` and `height`.
 #'
-#' @return Annotated Seurat object.
+#' @return The Seurat object with a `cell_annotation` metadata column, and the
+#'   active identities set to the annotations.
 #' @export
+#'
+#' @examples
+#' \dontrun{
+#' annotated <- annotate_clusters(
+#'   clustered_obj,
+#'   annotations = c("T cells", "B cells", "Monocytes"),
+#'   save_rds = FALSE
+#' )
+#' }
 annotate_clusters <- function(seurat_obj,
                               annotations,
                               output_dir = "./Plots/Annotation",

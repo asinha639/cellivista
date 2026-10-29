@@ -5,10 +5,21 @@
 #' @param seurat_obj A Seurat object with multiple samples labeled in the `SampleLabel` metadata column.
 #' @param output_path Path to save the integrated Seurat object (RDS). Default is "RDS_Files/integrated_seurat.obj.rds".
 #' @param nfeatures Number of integration features to select. Default is 3000.
+#' @param dims Integer vector of PCA dimensions used for anchor finding and
+#'   integration. Default is NULL, which uses up to the first 30 dimensions,
+#'   capped by the smallest sample size.
+#' @param k.anchor,k.filter,k.score,k.weight Neighborhood sizes passed to
+#'   anchor finding (`k.anchor`, `k.filter`, `k.score`) and integration
+#'   (`k.weight`). Default is NULL, which uses 5, 200, 30 and 100 respectively;
+#'   all values are capped by the smallest sample size.
 #' @param future_max_size Maximum memory allocation for future parallelization. Default is 2GB.
 #' @param save_rds Logical; whether to save the integrated object. Default is TRUE.
-#' @param output_dir Optional directory to save integration plots. Default is NULL.
-#' @param plot_options Optional list of integration plot settings.
+#' @param output_dir Optional directory to save integration plots. Default is
+#'   NULL (no plots are saved).
+#' @param plot_options Optional named list of plot settings with elements
+#'   `umap_grouped`, `umap_split` and `pie_chart`; each a list with optional
+#'   `filename`, `title`, `format` ("jpeg", "png" or "svg"), `width` and
+#'   `height`. Plots are saved only when `output_dir` is not NULL.
 #'
 #' @return A Seurat object with integrated expression data.
 #' @export

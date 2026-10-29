@@ -1,5 +1,8 @@
 #' Run Pairwise DGEA Between Clusters or Sample Labels
 #'
+#' Compares two groups defined by a metadata column using `FindMarkers` and
+#' writes the result to a CSV file.
+#'
 #' @param seurat_obj A Seurat object.
 #' @param group_by Metadata column to group by (e.g., "SampleLabel", "seurat_clusters").
 #' @param ident1 First group value (e.g., "Control" or 0).
@@ -10,6 +13,11 @@
 #'
 #' @return A data frame with DGEA results.
 #' @export
+#'
+#' @examples
+#' \dontrun{
+#' res <- run_pairwise_dgea(seurat_obj, "SampleLabel", "Control", "Trt1")
+#' }
 run_pairwise_dgea <- function(seurat_obj,
                               group_by = "SampleLabel",
                               ident1,

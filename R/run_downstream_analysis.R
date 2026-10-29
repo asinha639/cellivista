@@ -1,3 +1,5 @@
+#' Run PCA, UMAP, Clustering, and Downstream Visualization
+#'
 #' Performs scaling, dimensionality reduction, clustering, and generates summary plots.
 #'
 #' @param seurat_obj A Seurat object (e.g., integrated dataset).
@@ -5,33 +7,19 @@
 #' @param resolution Clustering resolution. Default is 0.1.
 #' @param output_dir Directory to save plots. Default is "./Plots".
 #' @param save_rds Logical; whether to save the Seurat object. Default is TRUE.
-#' @param rds_path Path to save the processed object. Default is "RDS_Files/integrated_postclustering.rds".
+#' @param rds_path Path to save the processed object. Default is "RDS_Files/downstream_analyzed.rds".
+#' @param save_plots Logical; whether downstream plots should be saved. Default is TRUE.
+#' @param plot_options Optional named list of plot settings with elements
+#'   `umap_grouped`, `umap_split` and `pie_chart`; each a list with optional
+#'   `filename`, `title`, `format` ("jpeg", "png" or "svg"), `width` and `height`.
 #'
 #' @return A Seurat object with downstream analysis applied.
 #' @export
 #'
 #' @examples
-#' integrated <- run_downstream_analysis(integrated)
-
-
-  #' Run PCA, UMAP, Clustering, and Downstream Visualization
-  #'
-  #' Performs scaling, dimensionality reduction, clustering, and generates summary plots.
-  #'
-  #' @param seurat_obj A Seurat object (e.g., integrated dataset).
-  #' @param dims Dimensions to use for PCA/UMAP. Default is 1:15.
-  #' @param resolution Clustering resolution. Default is 0.1.
-#' @param output_dir Directory to save plots. Default is "./Plots".
-#' @param save_rds Logical; whether to save the Seurat object. Default is TRUE.
-#' @param rds_path Path to save the processed object. Default is "RDS_Files/downstream_analyzed.rds".
-#' @param save_plots Logical; whether downstream plots should be saved. Default is TRUE.
-#' @param plot_options Optional list of plot settings for saving (filenames, formats, sizes).
-  #'
-  #' @return A Seurat object with downstream analysis applied.
-  #' @export
-  #'
-  #' @examples
-  #' integrated <- run_downstream_analysis(integrated)
+#' \dontrun{
+#' integrated <- run_downstream_analysis(integrated, save_rds = FALSE)
+#' }
 run_downstream_analysis <- function(seurat_obj,
                                     dims = 1:15,
                                     resolution = 0.1,
