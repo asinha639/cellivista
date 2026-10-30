@@ -1,4 +1,15 @@
-options(shiny.maxRequestSize = 25 * 1024^3)
+# Upload limit in GB: CELLIVISTA_MAX_UPLOAD_GB env var, then the cellivista.max_upload_gb option, then 25.
+cellivista_max_upload_gb <- local({
+  value <- Sys.getenv("CELLIVISTA_MAX_UPLOAD_GB", unset = "")
+  if (!nzchar(value)) value <- getOption("cellivista.max_upload_gb", 25)
+  value <- suppressWarnings(as.numeric(value))
+  if (length(value) != 1 || is.na(value) || value <= 0) {
+    warning("Invalid CELLIVISTA_MAX_UPLOAD_GB / cellivista.max_upload_gb; using 25 GB.", call. = FALSE)
+    value <- 25
+  }
+  value
+})
+options(shiny.maxRequestSize = cellivista_max_upload_gb * 1024^3)
 
 required_packages <- c(
   "shiny",
@@ -45,7 +56,8 @@ helper_files <- c(
   "viz_helpers.R",
   "plot_umap_palette.R",
   "plot_marker_heatmap.R",
-  "plot_cluster_composition.R"
+  "plot_cluster_composition.R",
+  "session_utils.R"
 )
 
 missing_helpers <- helper_files[!file.exists(file.path(helper_dir, helper_files))]
@@ -1086,7 +1098,7 @@ server <- function(input, output, session) {
     converted_ready = FALSE
   )
 
-  session_tmp <- file.path(tempdir(), paste0("cellivista_", Sys.getpid(), "_", as.integer(Sys.time())))
+  session_tmp <- tempfile(pattern = "cellivista_session_")
   dir.create(session_tmp, recursive = TRUE, showWarnings = FALSE)
 
   get_current_or_uploaded <- function(load_flag, file_input) {
@@ -1860,7 +1872,7 @@ server <- function(input, output, session) {
         )
       }
 
-      staging_parent <- file.path(tempdir(), paste0("GSE132044_example_dataset_", as.integer(Sys.time())))
+      staging_parent <- tempfile(pattern = "example_dataset_", tmpdir = session_tmp)
       staging_root <- file.path(staging_parent, "GSE132044")
       dir.create(staging_root, recursive = TRUE, showWarnings = FALSE)
 
@@ -1872,12 +1884,7 @@ server <- function(input, output, session) {
         file.copy(src, dest, overwrite = TRUE)
       }
 
-      old_wd <- getwd()
-      on.exit(setwd(old_wd), add = TRUE)
-      setwd(staging_parent)
-      files_to_zip <- list.files("GSE132044", recursive = TRUE, all.files = FALSE)
-      files_to_zip <- file.path("GSE132044", files_to_zip)
-      utils::zip(zipfile = file, files = files_to_zip)
+      zip_folder_relative(staging_parent, "GSE132044", file)
     }
   )
 
@@ -1998,7 +2005,6 @@ server <- function(input, output, session) {
       integration_future_max_size_gb <- 25
       integration_future_max_size <- integration_future_max_size_gb * 1024^3
       withProgress(message = "Integrating samples...", value = 0, {
-        options(future.globals.maxSize = integration_future_max_size)
         incProgress(0.2, detail = "Running integration")
         integrated <- integrate_seurat_samples(
           seurat_obj = seurat_input,
@@ -2588,6 +2594,15 @@ server <- function(input, output, session) {
   })
   output$vizCompositionDisplay <- renderUI(viz_preview_panel("Cluster composition", viz_rv$composition_preview, "downloadVizComposition"))
   output$downloadVizComposition <- viz_download_handler("composition_plot", "vizComposition", "cluster_composition")
+
+  # Remove this session's own temp folder and drop large objects when the user leaves.
+  session$onSessionEnded(function() {
+    cleanup_session_dir(session_tmp)
+    rv$seurat <- NULL
+    viz_rv$umap_plot <- NULL
+    viz_rv$heatmap_plot <- NULL
+    viz_rv$composition_plot <- NULL
+  })
 }
 
 shinyApp(ui, server)

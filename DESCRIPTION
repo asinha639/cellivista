@@ -45,7 +45,8 @@ Imports:
     stats,
     tools,
     utils,
-    viridisLite
+    viridisLite,
+    withr
 Suggests:
     shiny,
     base64enc,

@@ -43,7 +43,7 @@ Install the R packages listed in `DESCRIPTION` (Imports and the app's Suggests):
 ```r
 install.packages(c(
   "shiny", "Seurat", "SeuratObject", "ggplot2", "dplyr", "patchwork",
-  "purrr", "readr", "Matrix", "viridisLite", "base64enc", "future",
+  "purrr", "readr", "Matrix", "viridisLite", "withr", "base64enc", "future",
   "hdf5r", "remotes"
 ))
 remotes::install_github("chris-mcginnis-ucsf/DoubletFinder")

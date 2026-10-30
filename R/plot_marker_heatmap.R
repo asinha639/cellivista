@@ -130,8 +130,9 @@ map_clusters_to_groups <- function(clusters, groups) {
 #'   identities.
 #' @param assay Assay to plot. Default is NULL, which uses "SCT" when present
 #'   (matching the DGEA tab) and otherwise the default assay.
-#' @param seed Random seed for downsampling. The global RNG state is restored
-#'   afterwards. Default is 1.
+#' @param seed Random seed for downsampling, applied with
+#'   `withr::with_seed()`; the global RNG state is left unchanged.
+#'   Default is 1.
 #'
 #' @return A list with `plot` (a ggplot object), `genes` (the plotted genes),
 #'   `n_cells` (cells drawn), `ranking` (`"avg_log2FC"` or `"file order"`),
@@ -269,18 +270,13 @@ plot_marker_heatmap <- function(seurat_obj,
   top <- top[order(match(cluster_display, levels(display)), match(top$cluster, group_levels)), , drop = FALSE]
   genes <- unique(top$gene)
 
-  # Downsample cells per cluster without disturbing the caller's RNG state.
-  if (exists(".Random.seed", envir = globalenv(), inherits = FALSE)) {
-    old_seed <- get(".Random.seed", envir = globalenv(), inherits = FALSE)
-    on.exit(assign(".Random.seed", old_seed, envir = globalenv()), add = TRUE)
-  } else {
-    on.exit(rm(".Random.seed", envir = globalenv()), add = TRUE)
-  }
-  set.seed(seed)
-  keep_cells <- unlist(lapply(group_levels, function(lvl) {
+  # Seurat calls below may draw random numbers; keep the caller's RNG state.
+  withr::local_preserve_seed()
+  # Downsample cells per cluster with a local seed.
+  keep_cells <- withr::with_seed(seed, unlist(lapply(group_levels, function(lvl) {
     cells <- names(groups)[!is.na(groups) & groups == lvl]
     if (length(cells) > cells_per_cluster) sample(cells, cells_per_cluster) else cells
-  }), use.names = FALSE)
+  }), use.names = FALSE))
 
   sub_obj <- subset(seurat_obj, cells = keep_cells)
   SeuratObject::DefaultAssay(sub_obj) <- assay

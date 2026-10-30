@@ -22,6 +22,27 @@ test_that("plot_marker_heatmap downsamples cells and rejects mismatched markers"
   expect_error(plot_marker_heatmap(obj, NULL), "Run the Cluster-wise DGEA tab first")
 })
 
+test_that("plot_marker_heatmap leaves the global RNG state unchanged", {
+  obj <- make_marker_ready_seurat()
+  markers <- data.frame(cluster = rep(c("0", "1"), each = 3), gene = paste0("Gene", c(1:3, 7:9)), avg_log2FC = 3:1)
+
+  set.seed(42)
+  before <- .Random.seed
+  res <- quiet_toy(plot_marker_heatmap(obj, markers, n_genes = 3, cells_per_cluster = 5, seed = 1))
+  expect_identical(.Random.seed, before)
+
+  # Same cells as a plain set.seed(1) draw, i.e. identical to the previous method.
+  set.seed(1)
+  clusters <- as.character(obj$seurat_clusters)
+  expected <- unlist(lapply(levels(obj$seurat_clusters), function(lvl) sample(colnames(obj)[clusters == lvl], 5)))
+  plotted <- unique(as.character(res$plot$data$Cell))
+  expect_setequal(intersect(plotted, colnames(obj)), expected)
+
+  rm(".Random.seed", envir = globalenv())
+  quiet_toy(plot_marker_heatmap(obj, markers, n_genes = 3, cells_per_cluster = 5))
+  expect_false(exists(".Random.seed", envir = globalenv(), inherits = FALSE))
+})
+
 test_that("top15-style tables keep file order and report fewer genes than requested", {
   obj <- make_marker_ready_seurat()
   top15 <- data.frame(cluster = rep(c("0", "1"), each = 2), gene = c("Gene3", "Gene1", "Gene9", "Gene7"))

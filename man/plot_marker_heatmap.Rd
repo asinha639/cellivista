@@ -37,8 +37,9 @@ identities.}
 \item{assay}{Assay to plot. Default is NULL, which uses "SCT" when present
 (matching the DGEA tab) and otherwise the default assay.}
 
-\item{seed}{Random seed for downsampling. The global RNG state is restored
-afterwards. Default is 1.}
+\item{seed}{Random seed for downsampling, applied with
+\code{withr::with_seed()}; the global RNG state is left unchanged.
+Default is 1.}
 }
 \value{
 A list with \code{plot} (a ggplot object), \code{genes} (the plotted genes),

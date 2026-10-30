@@ -59,8 +59,9 @@ integrate_seurat_samples <- function(seurat_obj,
     stop("integrate_seurat_samples() requires an RNA assay.")
   }
   
-  # Setup future memory limit
-  options(future.globals.maxSize = future_max_size)
+  # Setup future memory limit for this call only; restore the caller's value.
+  old_future_opts <- options(future.globals.maxSize = future_max_size)
+  on.exit(options(old_future_opts), add = TRUE)
 
   # Seurat v5 layer-aware split before the existing per-sample workflow.
   seurat_obj[["RNA"]] <- split(seurat_obj[["RNA"]], f = seurat_obj$SampleLabel)

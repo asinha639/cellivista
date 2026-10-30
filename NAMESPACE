@@ -2,6 +2,7 @@
 
 export(annotate_clusters)
 export(choose_marker_source)
+export(cleanup_session_dir)
 export(convert_matrix_to_rds)
 export(default_group_column)
 export(detect_cluster_column)
@@ -22,4 +23,5 @@ export(run_downstream_analysis)
 export(run_pairwise_dgea)
 export(run_qc_metrics)
 export(save_viz_plot)
+export(zip_folder_relative)
 importFrom(dplyr,"%>%")
