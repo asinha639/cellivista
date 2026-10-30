@@ -19,11 +19,11 @@ test_that("run_qc_metrics adds percent.mt and respects validation checks", {
   expect_true(all(out$percent.mt >= 0))
 
   expect_error(
-    run_qc_metrics(obj, mt_pattern = "", save_plots = FALSE),
+    run_qc_metrics(obj, mt_pattern = "", output_dir = tempfile(pattern = "qc-"), save_plots = FALSE),
     "mt_pattern must be a non-empty character string"
   )
   expect_error(
-    run_qc_metrics(obj, sample_split_var = "MissingColumn", save_plots = FALSE),
+    run_qc_metrics(obj, sample_split_var = "MissingColumn", output_dir = tempfile(pattern = "qc-"), save_plots = FALSE),
     "sample_split_var not found"
   )
 })
@@ -33,7 +33,7 @@ test_that("post_qc_filtering_and_plots filters cells and saves summary plots", {
     counts = make_toy_counts(n_genes = 6, n_cells = 4, mt_genes = 2),
     sample_labels = rep(c("Sample1", "Sample2"), each = 2)
   )
-  obj <- quiet_toy(run_qc_metrics(obj, save_plots = FALSE))
+  obj <- quiet_toy(run_qc_metrics(obj, output_dir = tempfile(pattern = "qc-"), save_plots = FALSE))
 
   out_dir <- tempfile(pattern = "post-qc-")
   rds_path <- tempfile(fileext = ".rds")
@@ -57,7 +57,7 @@ test_that("post_qc_filtering_and_plots filters cells and saves summary plots", {
   expect_true(file.exists(rds_path))
 
   expect_error(
-    post_qc_filtering_and_plots(obj, min_features = 10, max_features = 5, save_rds = FALSE),
+    post_qc_filtering_and_plots(obj, min_features = 10, max_features = 5, output_dir = tempfile(pattern = "postqc-"), save_rds = FALSE),
     "min_features must be less than max_features"
   )
 })

@@ -6,6 +6,7 @@ on:
       - main
       - joss-revision
       - feat-visualizations
+      - joss-polish
   pull_request:
     branches:
       - main

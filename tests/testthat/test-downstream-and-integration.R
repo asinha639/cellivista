@@ -3,7 +3,7 @@ test_that("run_downstream_analysis performs the core workflow on a small object"
     counts = make_toy_counts(n_genes = 10, n_cells = 8, mt_genes = 2),
     sample_labels = rep(c("Sample1", "Sample2"), each = 4)
   )
-  obj <- quiet_toy(run_qc_metrics(obj, save_plots = FALSE))
+  obj <- quiet_toy(run_qc_metrics(obj, output_dir = tempfile(pattern = "qc-"), save_plots = FALSE))
 
   out <- quiet_toy(run_downstream_analysis(
     seurat_obj = obj,
@@ -18,7 +18,7 @@ test_that("run_downstream_analysis performs the core workflow on a small object"
   expect_true("seurat_clusters" %in% colnames(out@meta.data))
   expect_true("umap" %in% names(out@reductions))
   expect_error(
-    quiet_toy(run_downstream_analysis(obj, dims = integer(0), save_plots = FALSE, save_rds = FALSE)),
+    quiet_toy(run_downstream_analysis(obj, dims = integer(0), output_dir = tempfile(pattern = "downstream-"), save_plots = FALSE, save_rds = FALSE)),
     "dims must contain at least one positive integer"
   )
 })
