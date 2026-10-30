@@ -45,6 +45,10 @@ read_h5_to_seurat <- function(filepath,
     }
   }
   
+  if (!requireNamespace("hdf5r", quietly = TRUE)) {
+    stop("Reading .h5 files requires the hdf5r package. Install it with install.packages(\"hdf5r\").")
+  }
+
   message("Reading HDF5 file: ", filepath)
   counts <- Seurat::Read10X_h5(filepath)
   

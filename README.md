@@ -38,15 +38,18 @@ git clone https://github.com/asinha639/cellivista.git
 cd cellivista
 ```
 
+Install the R packages listed in `DESCRIPTION` (Imports and the app's Suggests):
+
 ```r
 install.packages(c(
-  "shiny","Seurat","ggplot2","dplyr","Matrix",
-  "patchwork","purrr","readr","future",
-  "shinyWidgets","shinyBS","tibble","tidyr"
+  "shiny", "Seurat", "SeuratObject", "ggplot2", "dplyr", "patchwork",
+  "purrr", "readr", "Matrix", "viridisLite", "base64enc", "future",
+  "hdf5r", "remotes"
 ))
+remotes::install_github("chris-mcginnis-ucsf/DoubletFinder")
 ```
 
-Install DoubletFinder following its official installation instructions.
+`hdf5r` is needed only to read 10x `.h5` files. To run the test suite, also install `testthat`, `covr` and the Bioconductor package `rhdf5` (`BiocManager::install("rhdf5")`).
 
 ```r
 shiny::runApp(".")

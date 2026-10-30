@@ -1,6 +1,7 @@
 ^\.github$
 ^CITATION\.cff$
 ^CONTRIBUTING\.md$
+^LICENSE\.md$
 ^app\.R$
 ^docs$
 ^paper$

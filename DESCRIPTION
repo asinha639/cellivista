@@ -1,6 +1,6 @@
 Package: Cellivista
 Type: Package
-Title: cellivista: An Interactive Seurat Based Shiny App for Single Cell RNA seq Analysis
+Title: Cellivista: An Interactive Seurat Based Shiny App for Single Cell RNA seq Analysis
 Version: 1.0.2
 Authors@R:
     c(
@@ -27,9 +27,10 @@ Description: A Shiny application for end-to-end single-cell RNA-seq analysis usi
     including quality control, post-QC filtering, doublet removal, sample integration,
     downstream clustering and UMAP visualization, cluster-wise DGEA, annotation,
     and gene-level FeaturePlot generation.
-License: file LICENSE
+License: MIT + file LICENSE
+URL: https://github.com/asinha639/cellivista
+BugReports: https://github.com/asinha639/cellivista/issues
 Encoding: UTF-8
-LazyData: true
 Imports:
     Seurat,
     SeuratObject,
@@ -41,14 +42,14 @@ Imports:
     Matrix,
     methods,
     grDevices,
+    stats,
+    tools,
+    utils,
     viridisLite
 Suggests:
     shiny,
-    shinyBS,
-    shinyWidgets,
+    base64enc,
     future,
-    tibble,
-    tidyr,
     DoubletFinder,
     testthat (>= 3.0.0),
     covr,
