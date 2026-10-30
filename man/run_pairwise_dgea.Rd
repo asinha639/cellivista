@@ -36,6 +36,11 @@ A data frame with DGEA results.
 Compares two groups defined by a metadata column using \code{FindMarkers} and
 writes the result to a CSV file.
 }
+\details{
+This function uses the RNA assay, whereas \code{\link[=run_clusterwise_dgea]{run_clusterwise_dgea()}} uses
+the SCT assay (after \code{PrepSCTFindMarkers()}). Both use Seurat's default
+test. This function is available from R; the app has no pairwise DGEA tab.
+}
 \examples{
 \dontrun{
 res <- run_pairwise_dgea(seurat_obj, "SampleLabel", "Control", "Trt1")

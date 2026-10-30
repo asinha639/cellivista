@@ -3,6 +3,10 @@
 #' Compares two groups defined by a metadata column using `FindMarkers` and
 #' writes the result to a CSV file.
 #'
+#' This function uses the RNA assay, whereas [run_clusterwise_dgea()] uses
+#' the SCT assay (after `PrepSCTFindMarkers()`). Both use Seurat's default
+#' test. This function is available from R; the app has no pairwise DGEA tab.
+#'
 #' @param seurat_obj A Seurat object.
 #' @param group_by Metadata column to group by (e.g., "SampleLabel", "seurat_clusters").
 #' @param ident1 First group value (e.g., "Control" or 0).

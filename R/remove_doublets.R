@@ -8,7 +8,7 @@
 #' @param save_rds Logical; whether to save the final filtered Seurat object.
 #'   Default is TRUE.
 #' @param rds_path Path to save filtered Seurat object.
-#'   Default is "seurat.obj_doubletfiltered.rds".
+#'   Default is "RDS_Files/seurat.obj_doubletfiltered.rds".
 #' @param doublet_rate Expected doublet rate (e.g., 0.075 for 7.5%).
 #'   Default is 0.075.
 #' @param save_plots Logical; whether to save DoubletFinder plots.

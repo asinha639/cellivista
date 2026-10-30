@@ -2,25 +2,29 @@ Package: Cellivista
 Type: Package
 Title: Cellivista: An Interactive Seurat Based Shiny App for Single Cell RNA seq Analysis
 Version: 1.0.2
+Date: 2026-07-30
 Authors@R:
     c(
       person(
         given = "Arnoneel",
         family = "Sinha",
         role = c("aut", "cre"),
-        email = "arsinha@augusta.edu"
+        email = "arsinha@augusta.edu",
+        comment = c(ORCID = "0000-0003-1006-0683")
       ),
       person(
         given = "Kathryn",
         family = "Sinha",
         role = "aut",
-        email = "KMCDONA3@augusta.edu"
+        email = "KMCDONA3@augusta.edu",
+        comment = c(ORCID = "0009-0006-0978-1087")
       ),
       person(
-        given = "Richard",
+        given = c("Richard", "A."),
         family = "McIndoe",
         role = "aut",
-        email = "RMCINDOE@augusta.edu"
+        email = "RMCINDOE@augusta.edu",
+        comment = c(ORCID = "0000-0002-3040-3631")
       )
     )
 Description: A Shiny application for end-to-end single-cell RNA-seq analysis using Seurat,

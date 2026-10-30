@@ -1,25 +1,31 @@
 cff-version: 1.2.0
-title: cellivista
+title: Cellivista
 message: "Please cite this software using the metadata below."
 type: software
 
 authors:
   - family-names: "Sinha"
     given-names: "Arnoneel"
+    orcid: "https://orcid.org/0000-0003-1006-0683"
+    affiliation: "Center for Biotechnology & Genomic Medicine, Augusta University, Augusta, GA, United States"
 
   - family-names: "Sinha"
     given-names: "Kathryn"
+    orcid: "https://orcid.org/0009-0006-0978-1087"
+    affiliation: "Department of Biostatistics, Data Science, & Epidemiology, Augusta University, Augusta, GA, United States"
 
   - family-names: "McIndoe"
-    given-names: "Richard"
+    given-names: "Richard A."
+    orcid: "https://orcid.org/0000-0002-3040-3631"
+    affiliation: "Center for Biotechnology & Genomic Medicine, Augusta University, Augusta, GA, United States"
 
 
 repository-code: "https://github.com/asinha639/cellivista"
 url: "https://au-cbgm-shiny.augusta.edu/cellivista/"
-doi: "https://doi.org/10.5281/zenodo.21708160"
+doi: "10.5281/zenodo.21708160"
 
 abstract: >-
-  cellivista is an open-source R/Shiny application for end-to-end
+  Cellivista is an open-source R/Shiny application for end-to-end
   single-cell RNA-seq analysis, including data import, quality control,
   filtering, doublet detection, sample integration, clustering,
   differential expression analysis, cell-type annotation, and
@@ -34,5 +40,6 @@ keywords:
 
 license: MIT
 
+# TODO(me): at release, set version and date-released here, Version/Date in DESCRIPTION, and the paper date to the same values.
 version: "1.0.2"
 date-released: "2026-07-30"

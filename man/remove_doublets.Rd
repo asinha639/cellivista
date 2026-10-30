@@ -25,7 +25,7 @@ remove_doublets(
 Default is TRUE.}
 
 \item{rds_path}{Path to save filtered Seurat object.
-Default is "seurat.obj_doubletfiltered.rds".}
+Default is "RDS_Files/seurat.obj_doubletfiltered.rds".}
 
 \item{doublet_rate}{Expected doublet rate (e.g., 0.075 for 7.5\%).
 Default is 0.075.}
