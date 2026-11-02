@@ -42,11 +42,11 @@ Rather than introducing new analytical methods, Cellivista builds directly upon 
 
 Several graphical tools already cover parts of this workflow. ASAP [@Gardeux:2017] is a hosted pipeline for post-alignment analysis with filtering, clustering, differential expression and enrichment. The Single Cell Portal [@Tarhan:2023] is an open-access portal for sharing and exploring single-cell datasets. ShinyCell [@Ouyang:2021] and Cerebro [@Hillje:2020] turn data processed elsewhere into interactive browsers, and NASQAR [@Yousif:2020], which includes Seurat-based wizards, bundles many sequencing applications on one shared platform. Seurat [@Satija:2015; @Stuart:2019] is the most flexible analysis framework, but it requires R programming.
 
-The closest alternative is Asc-Seurat [@Pereira:2021], a Shiny application built on Seurat that covers quality control, clustering, differential expression, trajectory inference and functional annotation. Its current version, described in its repository documentation, targets Seurat v5 and adds optional doublet removal and integration with RPCA or Harmony.
+The closest alternative is Asc-Seurat [@Pereira:2021], a Shiny application built on Seurat that covers quality control, clustering, differential expression, trajectory inference and automated cell-type annotation. Its current version, described in its repository documentation, targets Seurat v5 and adds optional doublet removal and integration with RPCA or Harmony.
 
 Cellivista follows the same Seurat-based approach. It combines DoubletFinder [@McGinnis:2019] and SCTransform-based [@Hafemeister:2019] integration in one guided workflow, and it is designed to run on a shared institutional server with isolated user sessions. It does not include trajectory inference.
 
-<!-- TODO(me): verify the "Seurat" cells for doublet detection and trajectory inference, and the Asc-Seurat cells, against its current documentation before submission. -->
+<!-- Cells checked against Asc-Seurat v3 documentation on 2026-11-02; re-check before final submission. -->
 
 Table: Comparison of Seurat-based workflows. Hosted and visualization-focused tools are discussed in the text.
 
@@ -54,13 +54,13 @@ Table: Comparison of Seurat-based workflows. Hosted and visualization-focused to
 |:---|:---:|:---:|:---:|
 | Browser-based graphical interface | ✗ | ✓ | ✓ |
 | Local installation | ✓ | ✓ | ✓ |
-| Doublet detection | Scripted | Optional | ✓ (DoubletFinder) |
+| Doublet detection | Add-on package | Optional | ✓ (DoubletFinder) |
 | Multi-sample integration | ✓ | RPCA or Harmony | SCTransform anchors |
-| Trajectory inference | Not built in | ✓ | ✗ |
+| Trajectory inference | Add-on packages | ✓ (3 methods) | ✗ |
 
 # Software design
 
-Cellivista's architecture separates the user interface from the analysis logic. The reactive Shiny front end (`app.R`) presents the workflow as a sequence of tabs, while the computation lives in modular, UI-independent functions in the `R/` directory, one for each major stage of the analysis. This division was a deliberate trade-off: it makes the code easier to test, reuse, and maintain separately from the interface, at the cost of a small amount of extra plumbing to wire functions to reactive inputs.
+Cellivista's architecture separates the user interface from the analysis logic. The reactive Shiny front end (`app.R`) presents the workflow as a sequence of tabs, while the computation lives in modular, UI-independent functions in the `R/` directory, one for each major stage of the analysis. This division was a deliberate trade-off: it makes the code easier to test, reuse, and maintain separately from the interface, at the cost of some extra plumbing to wire functions to reactive inputs.
 
 ![Overview of the Cellivista workflow.](figure1.png)
 
