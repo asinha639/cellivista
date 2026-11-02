@@ -6,17 +6,17 @@
 #' returns a notice explaining why.
 #'
 #' @param seurat_obj A Seurat object with a UMAP reduction.
-#' @param palette One of "default", "okabe_ito", or "viridis". Default is
-#'   "default".
 #' @param group_by Metadata column used to color cells, or `"ident"` for the
 #'   active identity. Default is NULL, which uses [default_group_column()]
 #'   (the cell-type annotation when present, otherwise the clusters).
+#' @param palette One of "default", "okabe_ito", or "viridis". Default is
+#'   "default".
 #' @param label Logical; draw group names on the plot, repelled so they do not
 #'   overlap. Default is FALSE.
 #' @param reduction Name of the reduction to plot. Default is "umap".
 #'
-#' @return A list with `plot` (a ggplot object), `palette_used` (the palette
-#'   actually applied), and `notice` (a character message, or NULL).
+#' @return A list with `plot` (a ggplot object), `notice` (a character
+#'   message, or NULL), and `palette_used` (the palette actually applied).
 #' @export
 #'
 #' @examples
@@ -25,14 +25,12 @@
 #' res$plot
 #' }
 plot_umap_palette <- function(seurat_obj,
-                              palette = c("default", "okabe_ito", "viridis"),
                               group_by = NULL,
+                              palette = c("default", "okabe_ito", "viridis"),
                               label = FALSE,
                               reduction = "umap") {
   palette <- match.arg(palette)
-  if (is.null(seurat_obj) || !inherits(seurat_obj, "Seurat")) {
-    stop("seurat_obj must be a Seurat object.")
-  }
+  check_seurat(seurat_obj)
   if (!reduction %in% names(seurat_obj@reductions)) {
     stop("No '", reduction, "' reduction found. Run the Downstream Analysis tab first.")
   }
@@ -55,8 +53,7 @@ plot_umap_palette <- function(seurat_obj,
     )
   }
 
-  cols <- switch(
-    palette_used,
+  cols <- switch(palette_used,
     default = NULL,
     okabe_ito = stats::setNames(okabe_ito[seq_len(n_groups)], group_levels),
     viridis = stats::setNames(viridisLite::viridis(n_groups), group_levels)
@@ -71,5 +68,5 @@ plot_umap_palette <- function(seurat_obj,
     repel = isTRUE(label)
   )
 
-  list(plot = plot_obj, palette_used = palette_used, notice = notice)
+  list(plot = plot_obj, notice = notice, palette_used = palette_used)
 }

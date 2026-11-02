@@ -7,9 +7,9 @@
 plot_marker_heatmap(
   seurat_obj,
   markers,
+  group_by = NULL,
   n_genes = 5,
   cells_per_cluster = 200,
-  group_by = NULL,
   cluster_col = NULL,
   assay = NULL,
   seed = 1
@@ -21,14 +21,14 @@ plot_marker_heatmap(
 \item{markers}{A data frame of marker results with columns \code{cluster} and
 \code{gene}, and optionally \code{avg_log2FC}.}
 
+\item{group_by}{Grouping shown on the heatmap: a metadata column, or
+\code{"ident"} for the active identity. Default is NULL, which uses
+\code{\link[=default_group_column]{default_group_column()}}.}
+
 \item{n_genes}{Number of top positive markers per cluster. Default is 5.}
 
 \item{cells_per_cluster}{Maximum number of cells drawn per cluster.
 Default is 200.}
-
-\item{group_by}{Grouping shown on the heatmap: a metadata column, or
-\code{"ident"} for the active identity. Default is NULL, which uses
-\code{\link[=default_group_column]{default_group_column()}}.}
 
 \item{cluster_col}{Metadata column the marker clusters refer to. Default is
 NULL, which uses \code{\link[=detect_cluster_column]{detect_cluster_column()}} and falls back to the active
@@ -42,10 +42,10 @@ identities.}
 Default is 1.}
 }
 \value{
-A list with \code{plot} (a ggplot object), \code{genes} (the plotted genes),
-\code{n_cells} (cells drawn), \code{ranking} (\code{"avg_log2FC"} or \code{"file order"}),
-\code{grouping} (a description of how cells are grouped), and \code{notice} (a
-character message, or NULL).
+A list with \code{plot} (a ggplot object), \code{notice} (a character
+message, or NULL), \code{genes} (the plotted genes), \code{n_cells} (cells drawn),
+\code{ranking} (\code{"avg_log2FC"} or \code{"file order"}), and \code{grouping} (a
+description of how cells are grouped).
 }
 \description{
 Draws a \code{Seurat::DoHeatmap()} of the top marker genes per cluster, taken

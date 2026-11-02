@@ -23,27 +23,30 @@
 cleanup_session_dir <- function(path,
                                 root = tempdir(),
                                 pattern = "^cellivista_session_[0-9a-f]+$") {
-  tryCatch({
-    if (!is.character(path) || length(path) != 1 || is.na(path) || !nzchar(path)) {
-      return(invisible(FALSE))
-    }
-    if (!dir.exists(path)) {
-      return(invisible(FALSE))
-    }
-    target <- normalizePath(path, winslash = "/", mustWork = TRUE)
-    base <- normalizePath(root, winslash = "/", mustWork = TRUE)
-    if (identical(target, base)) {
-      return(invisible(FALSE))
-    }
-    if (!identical(normalizePath(dirname(target), winslash = "/", mustWork = TRUE), base)) {
-      return(invisible(FALSE))
-    }
-    if (!grepl(pattern, basename(target))) {
-      return(invisible(FALSE))
-    }
-    unlink(target, recursive = TRUE)
-    invisible(!dir.exists(target))
-  }, error = function(e) invisible(FALSE))
+  tryCatch(
+    {
+      if (!is.character(path) || length(path) != 1 || is.na(path) || !nzchar(path)) {
+        return(invisible(FALSE))
+      }
+      if (!dir.exists(path)) {
+        return(invisible(FALSE))
+      }
+      target <- normalizePath(path, winslash = "/", mustWork = TRUE)
+      base <- normalizePath(root, winslash = "/", mustWork = TRUE)
+      if (identical(target, base)) {
+        return(invisible(FALSE))
+      }
+      if (!identical(normalizePath(dirname(target), winslash = "/", mustWork = TRUE), base)) {
+        return(invisible(FALSE))
+      }
+      if (!grepl(pattern, basename(target))) {
+        return(invisible(FALSE))
+      }
+      unlink(target, recursive = TRUE)
+      invisible(!dir.exists(target))
+    },
+    error = function(e) invisible(FALSE)
+  )
 }
 
 #' Zip a Folder While Keeping Its Relative Paths

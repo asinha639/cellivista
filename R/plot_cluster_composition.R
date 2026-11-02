@@ -17,9 +17,9 @@
 #' @param bars Either "samples" (one bar per sample) or "groups" (one bar per
 #'   group). Default is "samples".
 #'
-#' @return A list with `plot` (a ggplot object), `data` (a data frame with
-#'   columns `bar`, `fill`, `n_cells`, and `percent`), and `notice` (a
-#'   character message, or NULL).
+#' @return A list with `plot` (a ggplot object), `notice` (a character
+#'   message, or NULL), and `data` (a data frame with columns `bar`, `fill`,
+#'   `n_cells`, and `percent`).
 #' @export
 #'
 #' @examples
@@ -32,9 +32,7 @@ plot_cluster_composition <- function(seurat_obj,
                                      sample_col = NULL,
                                      bars = c("samples", "groups")) {
   bars <- match.arg(bars)
-  if (is.null(seurat_obj) || !inherits(seurat_obj, "Seurat")) {
-    stop("seurat_obj must be a Seurat object.")
-  }
+  check_seurat(seurat_obj)
   meta <- seurat_obj@meta.data
   groups <- resolve_viz_groups(seurat_obj, group_by)
 
@@ -82,5 +80,5 @@ plot_cluster_composition <- function(seurat_obj,
     ggplot2::theme_classic() +
     ggplot2::theme(axis.text.x = ggplot2::element_text(angle = 45, hjust = 1))
 
-  list(plot = plot_obj, data = counts, notice = notice)
+  list(plot = plot_obj, notice = notice, data = counts)
 }

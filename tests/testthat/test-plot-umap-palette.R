@@ -1,5 +1,5 @@
 test_that("plot_umap_palette applies palettes and falls back from Okabe-Ito above 8 clusters", {
-  obj <- make_umap_ready_seurat(counts = make_toy_counts(n_genes = 10, n_cells = 10))
+  obj <- umap_ready_seurat_10()
 
   default_res <- plot_umap_palette(obj, palette = "default")
   expect_s3_class(default_res$plot, "ggplot")

@@ -22,13 +22,7 @@ read_marker_table <- function(path) {
     as.data.frame(readr::read_csv(path, show_col_types = FALSE)),
     error = function(e) stop("Could not read the marker table as CSV: ", conditionMessage(e))
   )
-  missing_cols <- setdiff(c("cluster", "gene"), colnames(markers))
-  if (length(missing_cols) > 0) {
-    stop(
-      "Marker table is missing column(s): ", paste(missing_cols, collapse = ", "),
-      ". Use all_marker.csv or top15_marker.csv from the Cluster-wise DGEA tab."
-    )
-  }
+  check_marker_columns(markers)
   if (nrow(markers) == 0) {
     stop("Marker table has no rows.")
   }
@@ -119,12 +113,12 @@ map_clusters_to_groups <- function(clusters, groups) {
 #' @param seurat_obj A clustered Seurat object.
 #' @param markers A data frame of marker results with columns `cluster` and
 #'   `gene`, and optionally `avg_log2FC`.
-#' @param n_genes Number of top positive markers per cluster. Default is 5.
-#' @param cells_per_cluster Maximum number of cells drawn per cluster.
-#'   Default is 200.
 #' @param group_by Grouping shown on the heatmap: a metadata column, or
 #'   `"ident"` for the active identity. Default is NULL, which uses
 #'   [default_group_column()].
+#' @param n_genes Number of top positive markers per cluster. Default is 5.
+#' @param cells_per_cluster Maximum number of cells drawn per cluster.
+#'   Default is 200.
 #' @param cluster_col Metadata column the marker clusters refer to. Default is
 #'   NULL, which uses [detect_cluster_column()] and falls back to the active
 #'   identities.
@@ -134,10 +128,10 @@ map_clusters_to_groups <- function(clusters, groups) {
 #'   `withr::with_seed()`; the global RNG state is left unchanged.
 #'   Default is 1.
 #'
-#' @return A list with `plot` (a ggplot object), `genes` (the plotted genes),
-#'   `n_cells` (cells drawn), `ranking` (`"avg_log2FC"` or `"file order"`),
-#'   `grouping` (a description of how cells are grouped), and `notice` (a
-#'   character message, or NULL).
+#' @return A list with `plot` (a ggplot object), `notice` (a character
+#'   message, or NULL), `genes` (the plotted genes), `n_cells` (cells drawn),
+#'   `ranking` (`"avg_log2FC"` or `"file order"`), and `grouping` (a
+#'   description of how cells are grouped).
 #' @export
 #'
 #' @examples
@@ -148,22 +142,17 @@ map_clusters_to_groups <- function(clusters, groups) {
 #' }
 plot_marker_heatmap <- function(seurat_obj,
                                 markers,
+                                group_by = NULL,
                                 n_genes = 5,
                                 cells_per_cluster = 200,
-                                group_by = NULL,
                                 cluster_col = NULL,
                                 assay = NULL,
                                 seed = 1) {
-  if (is.null(seurat_obj) || !inherits(seurat_obj, "Seurat")) {
-    stop("seurat_obj must be a Seurat object.")
-  }
+  check_seurat(seurat_obj)
   if (is.null(markers) || !is.data.frame(markers) || nrow(markers) == 0) {
-    stop("No marker results available. Run the Cluster-wise DGEA tab first or upload the marker table.")
+    stop("No marker results found. Run the Cluster-wise DGEA tab first or upload the marker table.")
   }
-  missing_cols <- setdiff(c("cluster", "gene"), colnames(markers))
-  if (length(missing_cols) > 0) {
-    stop("Marker table is missing column(s): ", paste(missing_cols, collapse = ", "))
-  }
+  check_marker_columns(markers)
   n_genes <- as.integer(n_genes)
   cells_per_cluster <- as.integer(cells_per_cluster)
   if (length(n_genes) != 1 || is.na(n_genes) || n_genes < 1) {
@@ -189,7 +178,49 @@ plot_marker_heatmap <- function(seurat_obj,
     stop("Assay not found in seurat_obj: ", assay)
   }
 
-  # Top positive markers per cluster, ranked as in top15_marker.csv.
+  selected <- select_top_markers(markers, n_genes)
+  matched <- match_markers_to_object(
+    selected$top, group_levels, n_genes,
+    object_genes = rownames(seurat_obj[[assay]])
+  )
+  display_info <- heatmap_display_groups(
+    seurat_obj, groups, cluster_groups, key_name, group_by, matched$clusters
+  )
+  display <- display_info$display
+
+  top <- selected$top
+  top <- top[top$cluster %in% matched$clusters & top$gene %in% matched$genes, , drop = FALSE]
+  cluster_display <- vapply(top$cluster, function(cl) as.character(display[groups == cl][1]), character(1))
+  top <- top[order(match(cluster_display, levels(display)), match(top$cluster, group_levels)), , drop = FALSE]
+  genes <- unique(top$gene)
+
+  # Seurat calls below may draw random numbers; keep the caller's RNG state.
+  # This must stay in this function's frame so it covers ScaleData/DoHeatmap.
+  withr::local_preserve_seed()
+  keep_cells <- downsample_cells(groups, group_levels, cells_per_cluster, seed)
+
+  sub_obj <- subset(seurat_obj, cells = keep_cells)
+  SeuratObject::DefaultAssay(sub_obj) <- assay
+  Seurat::Idents(sub_obj) <- droplevels(display[colnames(sub_obj)])
+  sub_obj <- Seurat::ScaleData(sub_obj, features = genes, assay = assay, verbose = FALSE)
+
+  plot_obj <- Seurat::DoHeatmap(sub_obj, features = genes, assay = assay)
+
+  list(
+    plot = plot_obj,
+    notice = collapse_notices(c(matched$notices, display_info$notices)),
+    genes = genes,
+    n_cells = length(keep_cells),
+    ranking = selected$ranking,
+    grouping = display_info$grouping
+  )
+}
+
+# Internal steps of plot_marker_heatmap() ------------------------------------
+
+# Top `n_genes` positive markers per cluster. Ranked by avg_log2FC when that
+# column exists; otherwise the file order is kept (as in top15_marker.csv).
+select_top_markers <- function(markers, n_genes) {
   markers <- as.data.frame(markers)
   markers$cluster <- as.character(markers$cluster)
   markers$gene <- as.character(markers$gene)
@@ -203,19 +234,27 @@ plot_marker_heatmap <- function(seurat_obj,
   }
   top <- do.call(rbind, lapply(split(markers, markers$cluster), utils::head, n = n_genes))
   if (is.null(top) || nrow(top) == 0) {
-    stop("No positive marker genes found in the marker results.")
+    stop_in_caller("No positive marker genes found in the marker results.")
   }
+  list(top = top, ranking = ranking)
+}
 
+# Keeps the marker clusters and genes that exist in the object. Returns the
+# matched clusters, the present genes and the notices about what was dropped;
+# stops when the markers do not belong to this object.
+match_markers_to_object <- function(top, group_levels, n_genes, object_genes) {
   notices <- character(0)
   marker_clusters <- unique(top$cluster)
   matched_clusters <- intersect(group_levels, marker_clusters)
   mismatch_msg <- "These markers don't match this object, re-run the DGEA tab."
   if (length(matched_clusters) == 0) {
-    stop(mismatch_msg)
+    stop_in_caller(mismatch_msg)
   }
   dropped_clusters <- setdiff(marker_clusters, matched_clusters)
   if (length(dropped_clusters) > 0) {
-    notices <- c(notices, paste0("Dropped marker cluster(s) not in this object: ", paste(dropped_clusters, collapse = ", "), "."))
+    notices <- c(notices, paste0(
+      "Dropped marker cluster(s) not in this object: ", paste(dropped_clusters, collapse = ", "), "."
+    ))
   }
 
   per_cluster <- table(factor(top$cluster, levels = matched_clusters))
@@ -229,16 +268,22 @@ plot_marker_heatmap <- function(seurat_obj,
   }
 
   requested_genes <- unique(top$gene[top$cluster %in% matched_clusters])
-  present_genes <- requested_genes[requested_genes %in% rownames(seurat_obj[[assay]])]
+  present_genes <- requested_genes[requested_genes %in% object_genes]
   if (length(present_genes) == 0 || length(present_genes) < length(requested_genes) / 2) {
-    stop(mismatch_msg)
+    stop_in_caller(mismatch_msg)
   }
   missing_genes <- setdiff(requested_genes, present_genes)
   if (length(missing_genes) > 0) {
     notices <- c(notices, paste0("Dropped ", length(missing_genes), " marker gene(s) not in this object."))
   }
+  list(clusters = matched_clusters, genes = present_genes, notices = notices)
+}
 
-  # Map clusters to the requested grouping; fall back to clusters if ambiguous.
+# Maps clusters to the requested grouping; falls back to clusters when a
+# cluster holds more than one value. Returns the per-cell display groups, a
+# description of the grouping and any notices.
+heatmap_display_groups <- function(seurat_obj, groups, cluster_groups, key_name, group_by, matched_clusters) {
+  notices <- character(0)
   display_col <- if (is.null(group_by)) default_group_column(seurat_obj) else group_by
   display <- groups
   grouping <- paste0("Grouped by ", cluster_groups$label, ".")
@@ -264,33 +309,14 @@ plot_marker_heatmap <- function(seurat_obj,
       )
     }
   }
+  list(display = display, grouping = grouping, notices = notices)
+}
 
-  top <- top[top$cluster %in% matched_clusters & top$gene %in% present_genes, , drop = FALSE]
-  cluster_display <- vapply(top$cluster, function(cl) as.character(display[groups == cl][1]), character(1))
-  top <- top[order(match(cluster_display, levels(display)), match(top$cluster, group_levels)), , drop = FALSE]
-  genes <- unique(top$gene)
-
-  # Seurat calls below may draw random numbers; keep the caller's RNG state.
-  withr::local_preserve_seed()
-  # Downsample cells per cluster with a local seed.
-  keep_cells <- withr::with_seed(seed, unlist(lapply(group_levels, function(lvl) {
+# Draws up to `cells_per_cluster` cells per cluster with a local seed, so the
+# caller's RNG state is untouched.
+downsample_cells <- function(groups, group_levels, cells_per_cluster, seed) {
+  withr::with_seed(seed, unlist(lapply(group_levels, function(lvl) {
     cells <- names(groups)[!is.na(groups) & groups == lvl]
     if (length(cells) > cells_per_cluster) sample(cells, cells_per_cluster) else cells
   }), use.names = FALSE))
-
-  sub_obj <- subset(seurat_obj, cells = keep_cells)
-  SeuratObject::DefaultAssay(sub_obj) <- assay
-  Seurat::Idents(sub_obj) <- droplevels(display[colnames(sub_obj)])
-  sub_obj <- Seurat::ScaleData(sub_obj, features = genes, assay = assay, verbose = FALSE)
-
-  plot_obj <- Seurat::DoHeatmap(sub_obj, features = genes, assay = assay)
-
-  list(
-    plot = plot_obj,
-    genes = genes,
-    n_cells = length(keep_cells),
-    ranking = ranking,
-    grouping = grouping,
-    notice = if (length(notices) > 0) paste(notices, collapse = " ") else NULL
-  )
 }

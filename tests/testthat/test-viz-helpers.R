@@ -46,10 +46,13 @@ test_that("save_viz_plot writes png, pdf and svg with the requested extension", 
     expect_equal(tools::file_ext(path), fmt)
     expect_true(file.exists(path))
   }
+  expect_error(
+    save_viz_plot(p, file.path(out_dir, "bad"), format = "png", width = -1),
+    "width and height must be positive"
+  )
+
+  # svg needs the optional svglite package, so this part is skipped without it.
   skip_if_not_installed("svglite")
   path <- save_viz_plot(p, file.path(out_dir, "plot"), format = "svg", width = 4, height = 3)
   expect_true(file.exists(path))
-
-  expect_error(save_viz_plot(p, file.path(out_dir, "bad"), format = "png", width = -1),
-               "width and height must be positive")
 })

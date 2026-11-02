@@ -15,9 +15,7 @@
 #' detect_cluster_column(seurat_obj)
 #' }
 detect_cluster_column <- function(seurat_obj) {
-  if (is.null(seurat_obj) || !inherits(seurat_obj, "Seurat")) {
-    stop("seurat_obj must be a Seurat object.")
-  }
+  check_seurat(seurat_obj)
   meta_cols <- colnames(seurat_obj@meta.data)
   if ("seurat_clusters" %in% meta_cols) {
     return("seurat_clusters")
@@ -44,14 +42,11 @@ detect_cluster_column <- function(seurat_obj) {
 #' detect_sample_column(seurat_obj)
 #' }
 detect_sample_column <- function(seurat_obj) {
-  if (is.null(seurat_obj) || !inherits(seurat_obj, "Seurat")) {
-    stop("seurat_obj must be a Seurat object.")
-  }
+  check_seurat(seurat_obj)
   if (!"SampleLabel" %in% colnames(seurat_obj@meta.data)) {
     return(NULL)
   }
-  labels <- as.character(seurat_obj@meta.data$SampleLabel)
-  if (all(is.na(labels) | !nzchar(trimws(labels)))) {
+  if (!has_nonempty_values(seurat_obj@meta.data$SampleLabel)) {
     return(NULL)
   }
   "SampleLabel"
@@ -75,9 +70,7 @@ detect_sample_column <- function(seurat_obj) {
 #' list_group_columns(seurat_obj)
 #' }
 list_group_columns <- function(seurat_obj, max_levels = 200) {
-  if (is.null(seurat_obj) || !inherits(seurat_obj, "Seurat")) {
-    stop("seurat_obj must be a Seurat object.")
-  }
+  check_seurat(seurat_obj)
   meta <- seurat_obj@meta.data
   keep <- vapply(colnames(meta), function(col) {
     values <- meta[[col]]
@@ -106,17 +99,54 @@ list_group_columns <- function(seurat_obj, max_levels = 200) {
 #' default_group_column(seurat_obj)
 #' }
 default_group_column <- function(seurat_obj) {
-  if (is.null(seurat_obj) || !inherits(seurat_obj, "Seurat")) {
-    stop("seurat_obj must be a Seurat object.")
-  }
+  check_seurat(seurat_obj)
   if ("cell_annotation" %in% colnames(seurat_obj@meta.data)) {
-    labels <- as.character(seurat_obj@meta.data$cell_annotation)
-    if (!all(is.na(labels) | !nzchar(trimws(labels)))) {
+    if (has_nonempty_values(seurat_obj@meta.data$cell_annotation)) {
       return("cell_annotation")
     }
   }
   cluster_col <- detect_cluster_column(seurat_obj)
   if (is.null(cluster_col)) "ident" else cluster_col
+}
+
+# Internal helpers shared by the visualization functions ---------------------
+
+# Raises an error whose call is the function that is two frames up (the caller
+# of the helper that called this), so messages keep naming the exported
+# function the user actually called.
+stop_in_caller <- function(msg, frames_up = 2) {
+  stop(simpleError(msg, call = sys.call(-frames_up)))
+}
+
+# Stops unless `x` is a Seurat object.
+check_seurat <- function(x) {
+  if (is.null(x) || !inherits(x, "Seurat")) {
+    stop_in_caller("seurat_obj must be a Seurat object.")
+  }
+  invisible(x)
+}
+
+# TRUE if `x` has at least one value that is neither NA nor blank.
+has_nonempty_values <- function(x) {
+  x <- as.character(x)
+  any(!is.na(x) & nzchar(trimws(x)))
+}
+
+# Stops unless a marker table has the required columns.
+check_marker_columns <- function(markers, required = c("cluster", "gene")) {
+  missing_cols <- setdiff(required, colnames(markers))
+  if (length(missing_cols) > 0) {
+    stop_in_caller(paste0(
+      "Marker table is missing column(s): ", paste(missing_cols, collapse = ", "),
+      ". Use all_marker.csv or top15_marker.csv from the Cluster-wise DGEA tab."
+    ))
+  }
+  invisible(markers)
+}
+
+# Joins notices into one string, or NULL when there are none.
+collapse_notices <- function(notices, sep = " ") {
+  if (length(notices) > 0) paste(notices, collapse = sep) else NULL
 }
 
 # Resolves a grouping choice ("ident", a metadata column, or NULL for the
@@ -168,8 +198,9 @@ save_viz_plot <- function(plot_obj, path, format = c("png", "pdf", "svg"),
   format <- match.arg(format)
   width <- as.numeric(width)
   height <- as.numeric(height)
-  if (length(width) != 1 || is.na(width) || width <= 0 ||
-      length(height) != 1 || is.na(height) || height <= 0) {
+  bad_width <- length(width) != 1 || is.na(width) || width <= 0
+  bad_height <- length(height) != 1 || is.na(height) || height <= 0
+  if (bad_width || bad_height) {
     stop("width and height must be positive numbers.")
   }
 

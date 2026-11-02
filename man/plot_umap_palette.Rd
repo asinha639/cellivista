@@ -6,8 +6,8 @@
 \usage{
 plot_umap_palette(
   seurat_obj,
-  palette = c("default", "okabe_ito", "viridis"),
   group_by = NULL,
+  palette = c("default", "okabe_ito", "viridis"),
   label = FALSE,
   reduction = "umap"
 )
@@ -15,12 +15,12 @@ plot_umap_palette(
 \arguments{
 \item{seurat_obj}{A Seurat object with a UMAP reduction.}
 
-\item{palette}{One of "default", "okabe_ito", or "viridis". Default is
-"default".}
-
 \item{group_by}{Metadata column used to color cells, or \code{"ident"} for the
 active identity. Default is NULL, which uses \code{\link[=default_group_column]{default_group_column()}}
 (the cell-type annotation when present, otherwise the clusters).}
+
+\item{palette}{One of "default", "okabe_ito", or "viridis". Default is
+"default".}
 
 \item{label}{Logical; draw group names on the plot, repelled so they do not
 overlap. Default is FALSE.}
@@ -28,8 +28,8 @@ overlap. Default is FALSE.}
 \item{reduction}{Name of the reduction to plot. Default is "umap".}
 }
 \value{
-A list with \code{plot} (a ggplot object), \code{palette_used} (the palette
-actually applied), and \code{notice} (a character message, or NULL).
+A list with \code{plot} (a ggplot object), \code{notice} (a character
+message, or NULL), and \code{palette_used} (the palette actually applied).
 }
 \description{
 Draws the UMAP colored by group using Seurat's default colors, the

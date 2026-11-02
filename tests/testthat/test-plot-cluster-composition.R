@@ -1,5 +1,5 @@
 test_that("plot_cluster_composition draws 100% bars per sample or group", {
-  obj <- make_marker_ready_seurat()
+  obj <- marker_ready_seurat()
   obj$SampleLabel <- rep(c("A", "B"), length.out = ncol(obj))
 
   res <- plot_cluster_composition(obj)

@@ -1,10 +1,6 @@
 test_that("plot_marker_heatmap downsamples cells and rejects mismatched markers", {
-  obj <- make_marker_ready_seurat()
-  markers <- data.frame(
-    cluster = rep(c("0", "1", "9"), each = 6),
-    gene = paste0("Gene", c(1:6, 7:12, 1:6)),
-    avg_log2FC = rep(6:1, 3)
-  )
+  obj <- marker_ready_seurat()
+  markers <- toy_marker_table(extra_cluster = TRUE)
 
   res <- quiet_toy(plot_marker_heatmap(obj, markers, n_genes = 3, cells_per_cluster = 5))
   expect_s3_class(res$plot, "ggplot")
@@ -23,8 +19,8 @@ test_that("plot_marker_heatmap downsamples cells and rejects mismatched markers"
 })
 
 test_that("plot_marker_heatmap leaves the global RNG state unchanged", {
-  obj <- make_marker_ready_seurat()
-  markers <- data.frame(cluster = rep(c("0", "1"), each = 3), gene = paste0("Gene", c(1:3, 7:9)), avg_log2FC = 3:1)
+  obj <- marker_ready_seurat()
+  markers <- toy_marker_table()
 
   set.seed(42)
   before <- .Random.seed
@@ -44,7 +40,7 @@ test_that("plot_marker_heatmap leaves the global RNG state unchanged", {
 })
 
 test_that("top15-style tables keep file order and report fewer genes than requested", {
-  obj <- make_marker_ready_seurat()
+  obj <- marker_ready_seurat()
   top15 <- data.frame(cluster = rep(c("0", "1"), each = 2), gene = c("Gene3", "Gene1", "Gene9", "Gene7"))
 
   res <- quiet_toy(plot_marker_heatmap(obj, top15, n_genes = 5))
@@ -76,8 +72,8 @@ test_that("clusters map to cell types many-to-one, and one-to-many falls back to
   expect_equal(mapping$map, c("0" = "T cells", "1" = "T cells", "2" = "B cells"))
   expect_length(mapping$ambiguous, 0)
 
-  obj <- make_marker_ready_seurat()
-  markers <- data.frame(cluster = rep(c("0", "1"), each = 3), gene = paste0("Gene", c(1:3, 7:9)), avg_log2FC = 3:1)
+  obj <- marker_ready_seurat()
+  markers <- toy_marker_table()
   obj$cell_annotation <- factor(ifelse(obj$seurat_clusters == "0", "T cells", "B cells"))
   mapped <- quiet_toy(plot_marker_heatmap(obj, markers, n_genes = 3))
   expect_match(mapped$grouping, "2 cluster\\(s\\) mapped to 2 cell_annotation group\\(s\\)")

@@ -28,7 +28,8 @@ quiet_toy <- function(expr) {
     expr,
     warning = function(w) {
       if (any(vapply(toy_data_warning_patterns, grepl, logical(1),
-                     x = conditionMessage(w)))) {
+        x = conditionMessage(w)
+      ))) {
         invokeRestart("muffleWarning")
       }
     }
@@ -41,11 +42,9 @@ make_toy_counts <- function(n_genes = 8,
                             structured = FALSE) {
   stopifnot(n_genes >= 4, n_cells >= 4, mt_genes >= 1, mt_genes < n_genes)
 
-  set.seed(101)
-  counts <- matrix(
-    rpois(n_genes * n_cells, lambda = 5),
-    nrow = n_genes,
-    ncol = n_cells
+  counts <- withr::with_seed(
+    101,
+    matrix(rpois(n_genes * n_cells, lambda = 5), nrow = n_genes, ncol = n_cells)
   )
 
   if (structured) {
@@ -67,9 +66,9 @@ make_toy_counts <- function(n_genes = 8,
 }
 
 make_toy_seurat <- function(counts = make_toy_counts(),
-                           sample_labels = NULL,
-                           clusters = NULL,
-                           cell_annotations = NULL) {
+                            sample_labels = NULL,
+                            clusters = NULL,
+                            cell_annotations = NULL) {
   obj <- Seurat::CreateSeuratObject(
     counts = counts,
     project = "CellivistaTest",
@@ -119,10 +118,9 @@ make_marker_ready_seurat <- function() {
   counts[1:6, 21:40] <- 2L
   counts[7:12, 1:20] <- 2L
   counts[7:12, 21:40] <- 60L
-  counts <- counts + matrix(
-    rpois(length(counts), lambda = 2),
-    nrow = nrow(counts),
-    ncol = ncol(counts)
+  counts <- counts + withr::with_seed(
+    202,
+    matrix(rpois(length(counts), lambda = 2), nrow = nrow(counts), ncol = ncol(counts))
   )
 
   rownames(counts) <- paste0("Gene", seq_len(12))
@@ -140,6 +138,46 @@ make_marker_ready_seurat <- function() {
   obj <- Seurat::SCTransform(obj, verbose = FALSE)
   Seurat::Idents(obj) <- obj$seurat_clusters
   obj
+}
+
+# Shared fixtures: built once per test run (Seurat objects are copied when a
+# test modifies them) and always from fixed seeds.
+.fixture_cache <- new.env(parent = emptyenv())
+
+cached_fixture <- function(name, build) {
+  if (is.null(.fixture_cache[[name]])) {
+    .fixture_cache[[name]] <- build()
+  }
+  .fixture_cache[[name]]
+}
+
+marker_ready_seurat <- function() {
+  cached_fixture("marker_ready", make_marker_ready_seurat)
+}
+
+umap_ready_seurat_10 <- function() {
+  cached_fixture("umap_ready_10", function() {
+    make_umap_ready_seurat(counts = make_toy_counts(n_genes = 10, n_cells = 10))
+  })
+}
+
+# Marker tables for the marker-ready fixture: clusters "0" and "1" (genes 1-3
+# and 7-9, ranked by avg_log2FC). With `extra_cluster = TRUE` a cluster "9"
+# that is absent from the object is added, with six genes per cluster.
+toy_marker_table <- function(extra_cluster = FALSE) {
+  if (extra_cluster) {
+    data.frame(
+      cluster = rep(c("0", "1", "9"), each = 6),
+      gene = paste0("Gene", c(1:6, 7:12, 1:6)),
+      avg_log2FC = rep(6:1, 3)
+    )
+  } else {
+    data.frame(
+      cluster = rep(c("0", "1"), each = 3),
+      gene = paste0("Gene", c(1:3, 7:9)),
+      avg_log2FC = 3:1
+    )
+  }
 }
 
 write_matrix_market_fixture <- function(matrix_path, cell_path, gene_path) {

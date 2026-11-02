@@ -25,9 +25,9 @@ which uses \code{\link[=detect_sample_column]{detect_sample_column()}}.}
 group). Default is "samples".}
 }
 \value{
-A list with \code{plot} (a ggplot object), \code{data} (a data frame with
-columns \code{bar}, \code{fill}, \code{n_cells}, and \code{percent}), and \code{notice} (a
-character message, or NULL).
+A list with \code{plot} (a ggplot object), \code{notice} (a character
+message, or NULL), and \code{data} (a data frame with columns \code{bar}, \code{fill},
+\code{n_cells}, and \code{percent}).
 }
 \description{
 Draws stacked bars showing the percent of cells in each group. With
