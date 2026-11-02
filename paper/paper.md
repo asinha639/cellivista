@@ -64,7 +64,7 @@ Cellivista's architecture separates the user interface from the analysis logic. 
 
 ![Overview of the Cellivista workflow.](figure1.png)
 
-The workflow begins with data import from 10x Genomics HDF5 files, Seurat objects, or matrix/barcode/feature files, followed by quality control, normalization, dimensionality reduction, clustering, marker identification, and cell-type annotation. An optional Visualization Options tab adds colorblind-safe UMAP palettes, a marker-gene heatmap, and a stacked bar chart of cluster composition per sample. For comparisons between two groups, the package also provides a pairwise differential expression function, `run_pairwise_dgea()`, which is called from R rather than from the interface.
+The workflow begins with data import from 10x Genomics HDF5 files, Seurat objects, or matrix/barcode/feature files, followed by quality control, normalization, dimensionality reduction, clustering, marker identification, and cell-type annotation. An optional Visualization Options tab adds colorblind-safe UMAP palettes, a marker-gene heatmap, and a stacked bar chart of cluster composition per sample.
 
 A second design decision was to make intermediate Seurat objects first-class, exportable outputs. Users can save the Seurat object after major steps (e.g., post-filtering, post-integration) and reload it in a later tab, so clustering parameters can be revisited without rerunning earlier stages, and the saved objects can be inspected or re-used in scripted Seurat workflows outside the app. A production instance is maintained at <https://au-cbgm-shiny.augusta.edu/cellivista/>, and the source code is available at <https://github.com/asinha639/cellivista> under the MIT License.
 
@@ -80,7 +80,7 @@ Generative AI tools were used at several stages of this project. OpenAI ChatGPT 
 
 Later development relied on Anthropic Claude through Claude Code, using the Claude Sonnet 5.5 and Claude Opus 5.5 models. Claude Code filled gaps in the function documentation and expanded the automated test suite. 
 
-No AI output was accepted without review. The authors approved each change before it was merged. The full test suite was run after every change, and the application was tested on real data. Some proposed changes were rejected or reworked. The authors made all decisions about the software architecture and analytical workflow, and every scientific interpretation. We take full responsibility for the software and this manuscript.
+No AI output was accepted without review. The authors approved each change before it was merged. The full test suite was run after every change, and the application was tested on real data. Some proposed changes were rejected or reworked. The authors made all decisions about the software architecture and analytical workflow, and every scientific interpretation. We take full responsibility for the accuracy and integrity of the software and this manuscript.
 
 # Acknowledgements
 
