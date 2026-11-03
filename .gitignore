@@ -21,3 +21,15 @@ Thumbs.db
 .agents/
 .codex/
 
+# Vignette build files
+vignette/*.aux
+vignette/*.log
+vignette/*.out
+vignette/*.toc
+vignette/*.synctex.gz
+vignette/*.fls
+vignette/*.fdb_latexmk
+vignette/*.bbl
+vignette/*.blg
+vignette/vignette.pdf
+vignette/tree.txt
